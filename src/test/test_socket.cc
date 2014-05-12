@@ -40,8 +40,11 @@ void server_func(void *args)
 
 void client_func(void *args)
 {
-    while (!g_server_started) {
-        g_server_started_cond.wait(g_mutex);
+    {
+        LockGuard lock(g_mutex);
+        while (!g_server_started) {
+            g_server_started_cond.wait(g_mutex);
+        }
     }
 
     for (size_t i = 0; i < 10; ++i) {
