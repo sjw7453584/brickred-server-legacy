@@ -24,7 +24,7 @@ bool IODevice::attachIOService(IOService *io_service)
         detachIOService();
     }
 
-    if (!io_service->addIODevice(this)) {
+    if (io_service->addIODevice(this) == false) {
         return false;
     }
     io_service_ = io_service;

@@ -178,7 +178,7 @@ void IOService::Impl::loop()
             IODevice *io_device = (IODevice *)event->data.ptr;
 
             if (event->events & EPOLLOUT) {
-                if (!checkIODeviceExist(io_device)) {
+                if (checkIODeviceExist(io_device) == false) {
                     continue;
                 }
                 (io_device->getWriteCallback())(io_device);
@@ -189,14 +189,14 @@ void IOService::Impl::loop()
 #else
             if (event->events & (EPOLLIN | EPOLLPRI)) {
 #endif
-                if (!checkIODeviceExist(io_device)) {
+                if (checkIODeviceExist(io_device) == false) {
                     continue;
                 }
                 (io_device->getReadCallback())(io_device);
             }
 
             if (event->events & (EPOLLERR | EPOLLHUP)) {
-                if (!checkIODeviceExist(io_device)) {
+                if (checkIODeviceExist(io_device) == false) {
                     continue;
                 }
                 (io_device->getErrorCallback())(io_device);

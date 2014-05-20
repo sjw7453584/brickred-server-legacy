@@ -594,16 +594,16 @@ TcpService::Impl::SocketId TcpService::Impl::asyncConnect(
     UniquePtr<TcpSocket> socket(new TcpSocket());
 
     // open connect socket
-    if (!socket->open(addr.getProtocol())) {
+    if (socket->open(addr.getProtocol()) == false) {
         return -1;
     }
-    if (!(socket->setReuseAddr() &&
-          socket->setTcpNoDelay() &&
-          socket->setNonblock())) {
+    if (socket->setReuseAddr() == false ||
+        socket->setTcpNoDelay() == false ||
+        socket->setNonblock() == false) {
         return -1;
     }
 
-    if (socket->connect(addr)) {
+    if (socket->connect(addr) == true) {
         // connection is completed immediately 
         SocketId socket_id = buildConnectedSocket(socket);
         if (-1 == socket_id) {

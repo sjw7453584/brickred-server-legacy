@@ -15,7 +15,7 @@ ConditionVariable g_server_started_cond;
 void server_func(void *args)
 {
     TcpSocket listen_sock;
-    if (!listen_sock.passiveOpen(SocketAddress("127.0.0.1", 2000))) {
+    if (listen_sock.passiveOpen(SocketAddress("127.0.0.1", 2000)) == false) {
         std::cerr << "passiveOpen() failed" << std::endl;
         return;
     }
@@ -28,7 +28,7 @@ void server_func(void *args)
 
     for (;;) {
         TcpSocket client_sock;
-        if (!listen_sock.accept(&client_sock)) {
+        if (listen_sock.accept(&client_sock) == false) {
             std::cerr << "accept() failed" << std::endl;
             return;
         }
@@ -49,7 +49,7 @@ void client_func(void *args)
 
     for (size_t i = 0; i < 10; ++i) {
         TcpSocket sock;
-        if (!sock.activeOpen(SocketAddress("127.0.0.1", 2000))) {
+        if (sock.activeOpen(SocketAddress("127.0.0.1", 2000)) == false) {
             std::cerr << "activeOpen() failed" << std::endl;
             return;
         }

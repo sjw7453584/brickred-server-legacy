@@ -42,7 +42,7 @@ bool TcpSocket::open(SocketAddress::Protocol::type protocol)
         return false;
     }
 
-    if (!setCloseOnExec()) {
+    if (setCloseOnExec() == false) {
         close();
     }
 
@@ -107,7 +107,7 @@ bool TcpSocket::accept(TcpSocket *peer)
 
     peer->setDescriptor(sock_fd);
 
-    if (!peer->setCloseOnExec()) {
+    if (peer->setCloseOnExec() == false) {
         peer->close();
         return false;
     }
@@ -191,11 +191,12 @@ bool TcpSocket::setTcpNoDelay()
 
 bool TcpSocket::activeOpen(const SocketAddress &remote_addr)
 {
-    if (!open(remote_addr.getProtocol())) {
+    if (open(remote_addr.getProtocol()) == false) {
         return false;
     }
-    if (!(setReuseAddr() && setTcpNoDelay() &&
-          connect(remote_addr))) {
+    if (setReuseAddr() == false ||
+        setTcpNoDelay() == false ||
+        connect(remote_addr) == false) {
         close();
         return false;
     }
@@ -205,10 +206,10 @@ bool TcpSocket::activeOpen(const SocketAddress &remote_addr)
 
 bool TcpSocket::activeOpenNonblock(const SocketAddress &remote_addr)
 {
-    if (!activeOpen(remote_addr)) {
+    if (activeOpen(remote_addr) == false) {
         return false;
     }
-    if (!setNonblock()) {
+    if (setNonblock() == false) {
         close();
         return false;
     }
@@ -218,11 +219,13 @@ bool TcpSocket::activeOpenNonblock(const SocketAddress &remote_addr)
 
 bool TcpSocket::passiveOpen(const SocketAddress &local_addr)
 {
-    if (!open(local_addr.getProtocol())) {
+    if (open(local_addr.getProtocol()) == false) {
         return false;
     }
-    if (!(setReuseAddr() && setTcpNoDelay() &&
-          bind(local_addr) && listen(128))) {
+    if (setReuseAddr() == false ||
+        setTcpNoDelay() == false ||
+        bind(local_addr) == false ||
+        listen(128) == false) {
         close();
         return false;
     }
@@ -232,10 +235,10 @@ bool TcpSocket::passiveOpen(const SocketAddress &local_addr)
 
 bool TcpSocket::passiveOpenNonblock(const SocketAddress &local_addr)
 {
-    if (!passiveOpen(local_addr)) {
+    if (passiveOpen(local_addr) == false) {
         return false;
     }
-    if (!setNonblock()) {
+    if (setNonblock() == false) {
         close();
         return false;
     }
@@ -245,11 +248,11 @@ bool TcpSocket::passiveOpenNonblock(const SocketAddress &local_addr)
 
 bool TcpSocket::acceptNonblock(TcpSocket *peer)
 {
-    if (!accept(peer)) {
+    if (accept(peer) == false) {
         return false;
     }
-    if (!(peer->setTcpNoDelay() &&
-          peer->setNonblock())) {
+    if (peer->setTcpNoDelay() == false ||
+        peer->setNonblock() == false) {
         peer->close();
         return false;
     }

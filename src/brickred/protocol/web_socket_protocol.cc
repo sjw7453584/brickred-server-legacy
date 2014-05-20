@@ -468,7 +468,7 @@ int WebSocketProtocol::Impl::readFrame(DynamicBuffer *buffer)
     int opcode = b[0] & 0x0f;
 
     // not fin
-    if (fin == false) {
+    if (!fin) {
         if (opcode != 0x0) {
             last_op_code_ = opcode;
         }
