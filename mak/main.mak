@@ -11,7 +11,7 @@ SED_ ?= sed
 CFLAGS ?= -Wall -c -std=c99 -D_POSIX_C_SOURCE=2 $(C_FLAG)
 CPPFLAGS ?= -Wall -Wno-deprecated -c $(CPP_FLAG)
 ELFLAGS ?= $(EL_FLAG)
-DLFLAGS ?= -shared -fPIC 
+DLFLAGS ?= -shared -fPIC
 INCLUDES += $(INCLUDE)
 LIBS += $(LIB)
 DEPFILES += $(DEPFILE)
@@ -28,10 +28,10 @@ $(addprefix $(BUILD_DIR), $(subst /,_, $(addsuffix .o, $(basename $1)))): $1
 	@$(call ECHO, "[compiling $$@ ...]")
 	@$(CC_) -o $$@ $$(CFLAGS) $$(INCLUDES) $$<
 $(addprefix $(BUILD_DIR), $(subst /,_, $(addsuffix .d, $(basename $1)))): $1
-	@$(CC_) -MM $$(CFLAGS) $$(INCLUDES) $$< | $(SED_) 's,^.*:,$$@ :,g' | $(SED_) 's/\.d/\.o/' >$$@ 
+	@$(CC_) -MM $$(CFLAGS) $$(INCLUDES) $$< | $(SED_) 's,^.*:,$$@ :,g' | $(SED_) 's/\.d/\.o/' >$$@
 endef
 
-define make_cc_rule	
+define make_cc_rule
 $(addprefix $(BUILD_DIR), $(subst /,_, $(addsuffix .o, $(basename $1)))): $1
 	@$(call ECHO, "[compiling $$@ ...]")
 	@$(CXX_) -o $$@ $$(CPPFLAGS) $$(INCLUDES) $$<
