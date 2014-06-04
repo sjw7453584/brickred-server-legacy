@@ -236,11 +236,12 @@ public:
     {
         for (OpenPortsMap::const_iterator iter = open_ports_.begin();
              iter != open_ports_.end(); ++iter) {
-            printf("%s(open ports):\n", iter->first.c_str());
+            printf("%s: ", iter->first.c_str());
             const PortVector &ports = iter->second;
             for (size_t i = 0; i < ports.size(); ++i) {
-                printf("  %d\n", ports[i]);
+                printf("%d ", ports[i]);
             }
+            printf("\n");
         }
     }
 
