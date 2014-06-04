@@ -5,8 +5,8 @@
 #include <string>
 
 #include <brickred/dynamic_buffer.h>
-#include <brickred/socket_address.h>
 #include <brickred/io_service.h>
+#include <brickred/socket_address.h>
 #include <brickred/tcp_service.h>
 
 using namespace brickred;

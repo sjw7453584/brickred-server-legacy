@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <ext/hash_map>
+
 #include <brickred/string_util.h>
 
 using namespace brickred;

@@ -1,13 +1,13 @@
 #include <cerrno>
-#include <cstring>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <string>
 
 #include "test/test_util.h"
 #include <brickred/dynamic_buffer.h>
-#include <brickred/socket_address.h>
 #include <brickred/io_service.h>
+#include <brickred/socket_address.h>
 #include <brickred/string_util.h>
 #include <brickred/tcp_service.h>
 #include <brickred/protocol/http_protocol.h>

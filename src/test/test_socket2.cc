@@ -1,16 +1,16 @@
 #include <cerrno>
-#include <cstring>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <string>
 
-#include <brickred/mutex.h>
 #include <brickred/condition_variable.h>
-#include <brickred/thread.h>
 #include <brickred/dynamic_buffer.h>
-#include <brickred/socket_address.h>
 #include <brickred/io_service.h>
+#include <brickred/mutex.h>
+#include <brickred/socket_address.h>
 #include <brickred/tcp_service.h>
+#include <brickred/thread.h>
 
 using namespace brickred;
 

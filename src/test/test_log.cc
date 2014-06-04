@@ -2,8 +2,8 @@
 #include <iostream>
 
 #include "test/test_util.h"
-#include <brickred/log_core.h>
 #include <brickred/log_async_sink.h>
+#include <brickred/log_core.h>
 #include <brickred/log_file_sink.h>
 
 using namespace brickred;

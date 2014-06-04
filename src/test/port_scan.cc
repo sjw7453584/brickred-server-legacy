@@ -9,9 +9,9 @@
 
 #include <brickred/command_line_option.h>
 #include <brickred/dynamic_buffer.h>
+#include <brickred/io_service.h>
 #include <brickred/socket_address.h>
 #include <brickred/string_util.h>
-#include <brickred/io_service.h>
 #include <brickred/tcp_service.h>
 
 using namespace brickred;
@@ -345,7 +345,7 @@ private:
     int finished_scan_count_;
 };
 
-void printUsage(const char *progname)
+static void printUsage(const char *progname)
 {
     fprintf(stderr, "usage: %s <ipv4_addr_range> \n"
             "[-p <port_range>] [-n <max_conn_count>] [-t <timeout>]\n",

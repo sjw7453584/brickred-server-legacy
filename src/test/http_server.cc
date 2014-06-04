@@ -6,8 +6,8 @@
 
 #include "test/test_util.h"
 #include <brickred/dynamic_buffer.h>
-#include <brickred/socket_address.h>
 #include <brickred/io_service.h>
+#include <brickred/socket_address.h>
 #include <brickred/tcp_service.h>
 #include <brickred/unique_ptr.h>
 #include <brickred/protocol/http_protocol.h>
