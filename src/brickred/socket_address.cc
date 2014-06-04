@@ -264,5 +264,77 @@ bool SocketAddress::getAddressByDomain(const std::string &domain,
     return true;
 }
 
+bool SocketAddress::ipV4TextToBin(const std::string &text, uint32_t *binary)
+{
+    struct in_addr addr;
+    ::memset(&addr, 0, sizeof(addr));
+    if (::inet_pton(AF_INET, text.c_str(), &addr) != 1) {
+        return false;
+    }
+
+    *binary = ntohl(addr.s_addr);
+
+    return true;
+}
+
+void SocketAddress::ipV4BinToText(uint32_t binary, std::string *text)
+{
+    struct in_addr addr;
+    ::memset(&addr, 0, sizeof(addr));
+    addr.s_addr = htonl(binary);
+
+    char ip[1024];
+    if (::inet_ntop(AF_INET, &addr, ip, sizeof(ip)) == NULL) {
+        return;
+    }
+
+    *text = ip;
+}
+
+std::string SocketAddress::ipV4BinToText(uint32_t binary)
+{
+    std::string text;
+    ipV4BinToText(binary, &text);  
+    return text;
+}
+
+bool SocketAddress::ipV6TextToBin(const std::string &text, uint8_t binary[16])
+{
+    struct in6_addr addr;
+    ::memset(&addr, 0, sizeof(addr));
+    if (::inet_pton(AF_INET6, text.c_str(), &addr) != 1) {
+        return false;
+    }
+
+    for (int i = 0; i < 16; ++i) {
+        binary[i] = addr.s6_addr[i];
+    }
+
+    return true;
+}
+
+void SocketAddress::ipV6BinToText(const uint8_t binary[16], std::string *text)
+{
+    struct in6_addr addr;
+    ::memset(&addr, 0, sizeof(addr));
+    for (int i = 0; i < 16; ++i) {
+        addr.s6_addr[i] = binary[i];
+    }
+
+    char ip[1024];
+    if (::inet_ntop(AF_INET, &addr, ip, sizeof(ip)) == NULL) {
+        return;
+    }
+
+    *text = ip;
+}
+
+std::string SocketAddress::ipV6BinToText(const uint8_t binary[16])
+{
+    std::string text;
+    ipV6BinToText(binary, &text);  
+    return text;
+}
+
 } // namespace brickred
 

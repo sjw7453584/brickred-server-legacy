@@ -1,6 +1,5 @@
 #include <brickred/dynamic_buffer.h>
 
-#include <cassert>
 #include <cstring>
 #include <algorithm>
 
@@ -9,8 +8,6 @@ namespace brickred {
 DynamicBuffer::DynamicBuffer(size_t init_size, size_t expand_size) :
     buffer_(init_size), expand_size_(expand_size), read_index_(0), write_index_(0)
 {
-    assert(init_size > 0);
-    assert(expand_size > 0);
 }
 
 DynamicBuffer::~DynamicBuffer()

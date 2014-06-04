@@ -47,7 +47,7 @@ void errorCallback(TcpService *service,
 int main(int argc, char *argv[])
 {
     if (argc < 4) {
-        fprintf(stderr, "usage: %s <addr> <port> <conn_num>\n", argv[0]);
+        fprintf(stderr, "usage: %s <ip> <port> <conn_num>\n", argv[0]);
         return -1;
     }
 

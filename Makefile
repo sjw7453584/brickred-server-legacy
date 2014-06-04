@@ -41,6 +41,8 @@ debug release clean profile:
 	@$(MAKE) -f mak/test/http_client.mak $@
 	@$(call ECHO, "[build http_server]")
 	@$(MAKE) -f mak/test/http_server.mak $@
+	@$(call ECHO, "[build port_scan]")
+	@$(MAKE) -f mak/test/port_scan.mak $@
 	@$(call ECHO, "[build sha1_sum]")
 	@$(MAKE) -f mak/test/sha1_sum.mak $@
 	@$(call ECHO, "[build sha1_sum_binary]")

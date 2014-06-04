@@ -73,7 +73,6 @@ public:
                              TcpService::SocketId socket_id,
                              DynamicBuffer *buffer)
     {
-
         Context *context = (Context *)service->getContext(socket_id);
         if (NULL == context) {
             service->closeSocket(socket_id);

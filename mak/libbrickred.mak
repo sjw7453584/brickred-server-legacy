@@ -1,5 +1,6 @@
 TARGET = build/libbrickred
 SRCS = src/brickred/base_logger.cc \
+       src/brickred/command_line_option.cc \
        src/brickred/condition_variable.cc \
        src/brickred/dynamic_buffer.cc \
        src/brickred/socket_address.cc \

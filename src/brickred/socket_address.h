@@ -40,6 +40,13 @@ public:
     static bool getAddressByDomain(const std::string &domain,
         std::vector<SocketAddress> *addr_list);
 
+    static bool ipV4TextToBin(const std::string &text, uint32_t *binary);
+    static void ipV4BinToText(uint32_t binary, std::string *text);
+    static std::string ipV4BinToText(uint32_t binary);
+    static bool ipV6TextToBin(const std::string &text, uint8_t binary[16]);
+    static void ipV6BinToText(const uint8_t binary[16], std::string *text);
+    static std::string ipV6BinToText(const uint8_t binary[16]);
+
 private:
     class Impl;
     UniquePtr<Impl> pimpl_;
