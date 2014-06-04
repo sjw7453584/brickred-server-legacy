@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <cerrno>
 #include <cstdio>
 #include <cstdlib>
@@ -5,6 +6,7 @@
 #include <string>
 
 #include "test/test_util.h"
+#include <brickred/command_line_option.h>
 #include <brickred/dynamic_buffer.h>
 #include <brickred/io_service.h>
 #include <brickred/socket_address.h>
@@ -16,6 +18,9 @@
 
 using namespace brickred;
 using namespace brickred::protocol;
+
+static bool g_opt_print_hex = false;
+static std::string g_opt_user_agent;
 
 class HttpClient {
 public:
@@ -56,7 +61,9 @@ public:
         request.setRequestUri(request_uri);
         request.setHeader("Host",
             addr.getIp() + ":" + string_util::toString(addr.getPort()));
-        request.setHeader("User-Agent", "brickred http client");
+        if (g_opt_user_agent.empty() == false) {
+            request.setHeader("User-Agent", g_opt_user_agent);
+        }
         request.setHeader("Connection", "keep-alive");
 
         DynamicBuffer buffer;
@@ -73,7 +80,7 @@ public:
                response.getReasonPhrase().c_str());
 
         // print header
-        printf("  header:\n");
+        printf("--- header ---\n");
         for (HttpMessage::HeaderMap::const_iterator iter =
                  response.getHeaders().begin();
              iter != response.getHeaders().end(); ++iter) {
@@ -81,9 +88,13 @@ public:
                    iter->first.c_str(), iter->second.c_str());
         }
         // print body
-        printf("  body:\n");
-        test::hexdump(response.getBody().c_str(),
-                      response.getBody().size());
+        printf("\n--- body ---\n\n");
+        if (g_opt_print_hex) {
+            test::hexdump(response.getBody().c_str(),
+                          response.getBody().size());
+        } else {
+            printf("%s\n", response.getBody().c_str());
+        }
     }
 
     void recvMessageCallback(TcpService *service,
@@ -140,15 +151,50 @@ private:
     HttpProtocol protocol_;
 };
 
+static void printUsage(const char *progname)
+{
+    fprintf(stderr, "usage: %s <ip>\n"
+            "[-p <port>] [-r <request_uri>]\n"
+            "[-u <user_agent>] [-H(hex_output)]\n",
+            progname);
+}
+
 int main(int argc, char *argv[])
 {
-    if (argc < 4) {
-        fprintf(stderr, "usage: %s <ip> <port> <request_uri>\n", argv[0]);
+    std::string ip;
+    uint16_t port = 80;
+    std::string request_uri = "/";
+
+    CommandLineOption options;
+    options.addOption("p", CommandLineOption::ParameterType::REQUIRED);
+    options.addOption("r", CommandLineOption::ParameterType::REQUIRED);
+    options.addOption("u", CommandLineOption::ParameterType::REQUIRED);
+    options.addOption("H");
+
+    if (options.parse(argc, argv) == false) {
+        printUsage(argv[0]);
         return -1;
     }
+    if (options.hasOption("p")) {
+        port = atoi(options.getParameter("p").c_str());
+    }
+    if (options.hasOption("r")) {
+        request_uri = options.getParameter("r");
+    }
+    if (options.hasOption("u")) {
+        g_opt_user_agent = options.getParameter("u");
+    }
+    if (options.hasOption("H")) {
+        g_opt_print_hex = true;
+    }
+    if (options.getLeftArguments().size() != 1) {
+        printUsage(argv[0]);
+        return -1;
+    }
+    ip = options.getLeftArguments()[0];
 
     HttpClient client;
-    client.request(SocketAddress(argv[1], ::atoi(argv[2])), argv[3]);
+    client.request(SocketAddress(ip, port), request_uri);
 
     return 0;
 }
