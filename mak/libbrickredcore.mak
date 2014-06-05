@@ -1,4 +1,6 @@
-TARGET = build/libbrickred
+include config.mak
+
+TARGET = build/libbrickredcore
 SRCS = src/brickred/base_logger.cc \
        src/brickred/command_line_option.cc \
        src/brickred/condition_variable.cc \
@@ -27,7 +29,18 @@ SRCS = src/brickred/base_logger.cc \
        src/brickred/protocol/web_socket_protocol.cc
 LINK_TYPE = static
 INCLUDE = -Isrc
+CPP_FLAG = $(BRCORE_CPP_FLAG)
 BUILD_DIR = build
 
 include mak/main.mak
+
+install:
+	@mkdir -p $(BR_INSTALL_PREFIX)/include/brickred
+	@mkdir -p $(BR_INSTALL_PREFIX)/include/brickred/protocol
+	@mkdir -p $(BR_INSTALL_PREFIX)/include/brickred/codec
+	@cp src/brickred/*.h $(BR_INSTALL_PREFIX)/include/brickred
+	@cp src/brickred/protocol/*.h $(BR_INSTALL_PREFIX)/include/brickred/protocol
+	@cp src/brickred/codec/*.h $(BR_INSTALL_PREFIX)/include/brickred/codec
+	@mkdir -p $(BR_INSTALL_PREFIX)/lib
+	@cp build/libbrickredcore.a $(BR_INSTALL_PREFIX)/lib
 

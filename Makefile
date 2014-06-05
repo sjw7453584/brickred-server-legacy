@@ -1,12 +1,17 @@
+include config.mak
+
 MAKE = make --no-print-directory
 
 define ECHO
 	@printf "\033[;31m"; printf $1; printf "\033[0m\n"
 endef
 
-debug release clean profile:
-	@$(call ECHO, "[build libbrickred]")
-	@$(MAKE) -f mak/libbrickred.mak $@
+.PHONY: debug release profile clean install
+
+debug release profile clean:
+	@$(call ECHO, "[build libbrickredcore]")
+	@$(MAKE) -f mak/libbrickredcore.mak $@
+ifeq ($(BR_BUILD_TEST), yes)
 	@$(call ECHO, "[build libbrtest]")
 	@$(MAKE) -f mak/test/libbrtest.mak $@
 	@$(call ECHO, "[build testcodec]")
@@ -51,4 +56,9 @@ debug release clean profile:
 	@$(MAKE) -f mak/test/ws_echo_client.mak $@
 	@$(call ECHO, "[build ws_echo_server]")
 	@$(MAKE) -f mak/test/ws_echo_server.mak $@
+endif
+
+install:
+	@$(call ECHO, "[install libbrickredcore]")
+	@$(MAKE) -f mak/libbrickredcore.mak $@
 

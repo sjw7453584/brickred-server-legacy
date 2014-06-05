@@ -1,28 +1,41 @@
 brickred-server
 ===============
 This is the brickred studio game server library.
-It implemented basic functionality which a c++ game server needed,
-such as network, timer, multithread, log util and so on.
+It implemented basic functionality which a c++ game server needed.
+
+Features
+========
+* reactor network io
+* multithread support
+* min-heap based timer
+* async log util
+* http protocol support
+* websocket protocol support
+* random number generator
+* command-line option parser
 
 Platform support
 ----------------
-only linux (IOService use epoll), maybe port to other platforms in the future
+only linux, maybe port to other platforms in the future
 
 Dependency
 ----------
-compatiable with c++03, no external dependency
+compatiable with c++03
+* libbrickredcore is no external dependency
 
 Compile
 -------
-you need to install gmake and g++, then just
+you need to install gmake and g++, then just:
 
-    $ make release
+    $ config.sh --prefix=<prefix>
+    $ make && make install
 
-Compatiable
------------
-On the system do not have *epoll_create1*, please edit the mak/libbrickred.mak, add the line:
+if you want build test programmes:
 
-    CPP_FLAG = -DBRICKRED_DONT_HAVE_EPOLL_CREATE1
+    $ config.sh --prefix=<prefix> --build-test
+    $ make
+
+after compile you can find them in bin dir
 
 Example
 -------
