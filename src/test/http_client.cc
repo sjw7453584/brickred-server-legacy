@@ -20,6 +20,7 @@ using namespace brickred;
 using namespace brickred::protocol;
 
 static bool g_opt_print_hex = false;
+static std::string g_opt_host;
 static std::string g_opt_user_agent;
 
 class HttpClient {
@@ -59,11 +60,17 @@ public:
         request.setVersion(HttpMessage::Version::HTTP_1_1);
         request.setMethod(HttpRequest::Method::GET);
         request.setRequestUri(request_uri);
-        request.setHeader("Host",
-            addr.getIp() + ":" + string_util::toString(addr.getPort()));
+
+        if (g_opt_host.empty() == false) {
+            request.setHeader("Host", g_opt_host);
+        } else {
+            request.setHeader("Host",
+                addr.getIp() + ":" + string_util::toString(addr.getPort()));
+        }
         if (g_opt_user_agent.empty() == false) {
             request.setHeader("User-Agent", g_opt_user_agent);
         }
+
         request.setHeader("Connection", "keep-alive");
 
         DynamicBuffer buffer;
@@ -155,7 +162,9 @@ static void printUsage(const char *progname)
 {
     fprintf(stderr, "usage: %s <ip>\n"
             "[-p <port>] [-r <request_uri>]\n"
-            "[-u <user_agent>] [-H(hex_output)]\n",
+            "[-H(hex_output)]\n"
+            "[--user-agent <user_agent>]\n"
+            "[--host <host>]\n",
             progname);
 }
 
@@ -168,8 +177,9 @@ int main(int argc, char *argv[])
     CommandLineOption options;
     options.addOption("p", CommandLineOption::ParameterType::REQUIRED);
     options.addOption("r", CommandLineOption::ParameterType::REQUIRED);
-    options.addOption("u", CommandLineOption::ParameterType::REQUIRED);
     options.addOption("H");
+    options.addOption("host", CommandLineOption::ParameterType::REQUIRED);
+    options.addOption("user-agent", CommandLineOption::ParameterType::REQUIRED);
 
     if (options.parse(argc, argv) == false) {
         printUsage(argv[0]);
@@ -181,11 +191,14 @@ int main(int argc, char *argv[])
     if (options.hasOption("r")) {
         request_uri = options.getParameter("r");
     }
-    if (options.hasOption("u")) {
-        g_opt_user_agent = options.getParameter("u");
-    }
     if (options.hasOption("H")) {
         g_opt_print_hex = true;
+    }
+    if (options.hasOption("host")) {
+        g_opt_host = options.getParameter("host");
+    }
+    if (options.hasOption("user-agent")) {
+        g_opt_user_agent = options.getParameter("user-agent");
     }
     if (options.getLeftArguments().size() != 1) {
         printUsage(argv[0]);
