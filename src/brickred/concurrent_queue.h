@@ -94,7 +94,7 @@ public:
     }
 
 private:
-    bool fullNoLock()
+    bool fullNoLock() const
     {
         if (!is_bounded_) {
             return false;

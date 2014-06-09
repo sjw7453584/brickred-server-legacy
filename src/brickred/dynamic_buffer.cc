@@ -42,7 +42,7 @@ size_t DynamicBuffer::writableBytes() const
     return buffer_.size() - write_index_;
 }
 
-const char *DynamicBuffer::readBegin()
+const char *DynamicBuffer::readBegin() const
 {
     return &buffer_[read_index_];
 }

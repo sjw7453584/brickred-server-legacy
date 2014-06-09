@@ -18,7 +18,7 @@ public:
     size_t readableBytes() const;
     size_t writableBytes() const;
 
-    const char *readBegin();
+    const char *readBegin() const;
     char *writeBegin();
     void read(size_t size);
     void write(size_t size);
