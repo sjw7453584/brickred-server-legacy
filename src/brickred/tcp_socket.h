@@ -1,6 +1,8 @@
 #ifndef BRICKRED_TCP_SOCKET_H
 #define BRICKRED_TCP_SOCKET_H
 
+#include <cstddef>
+
 #include <brickred/io_device.h>
 #include <brickred/socket_address.h>
 

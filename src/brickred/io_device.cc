@@ -2,14 +2,13 @@
 
 #include <fcntl.h>
 #include <unistd.h>
-#include <cstddef>
 #include <cstring>
 
 #include <brickred/io_service.h>
 
 namespace brickred {
 
-IODevice::IODevice() : io_service_(NULL), fd_(-1)
+IODevice::IODevice() : io_service_(NULL), id_(0), fd_(-1)
 {
 }
 

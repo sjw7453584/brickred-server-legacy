@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <string>
+#include <cstddef>
 
 #include <brickred/class_util.h>
 #include <brickred/function.h>
@@ -35,10 +36,10 @@ public:
     void setWriteCallback(WriteCallback write_cb);
     void setErrorCallback(ErrorCallback error_cb);
 
-    int read(char *buffer, size_t size);
-    int write(const char *buffer, size_t size);
-    bool setNonblock();
-    bool setCloseOnExec();
+    virtual int read(char *buffer, size_t size);
+    virtual int write(const char *buffer, size_t size);
+    virtual bool setNonblock();
+    virtual bool setCloseOnExec();
 
 protected:
     IOService *io_service_;

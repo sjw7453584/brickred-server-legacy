@@ -14,6 +14,7 @@ SRCS = src/brickred/base_logger.cc \
        src/brickred/log_stderr_sink.cc \
        src/brickred/mutex.cc \
        src/brickred/random.cc \
+       src/brickred/self_pipe.cc \
        src/brickred/tcp_socket.cc \
        src/brickred/tcp_service.cc \
        src/brickred/thread.cc \
