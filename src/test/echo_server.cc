@@ -16,13 +16,13 @@ public:
     EchoServer() : tcp_service_(io_service_)
     {
         tcp_service_.setNewConnectionCallback(BRICKRED_BIND_MEM_FUNC(
-            &EchoServer::newConnectionCallback, this));
+            &EchoServer::onNewConnection, this));
         tcp_service_.setRecvMessageCallback(BRICKRED_BIND_MEM_FUNC(
-            &EchoServer::recvMessageCallback, this));
+            &EchoServer::onRecvMessage, this));
         tcp_service_.setPeerCloseCallback(BRICKRED_BIND_MEM_FUNC(
-            &EchoServer::peerCloseCallback, this));
+            &EchoServer::onPeerClose, this));
         tcp_service_.setErrorCallback(BRICKRED_BIND_MEM_FUNC(
-            &EchoServer::errorCallback, this));
+            &EchoServer::onError, this));
     }
 
     ~EchoServer()
@@ -41,18 +41,18 @@ public:
         return true;
     }
 
-    void newConnectionCallback(TcpService *service,
-                               TcpService::SocketId from_socket_id,
-                               TcpService::SocketId socket_id)
+    void onNewConnection(TcpService *service,
+                         TcpService::SocketId from_socket_id,
+                         TcpService::SocketId socket_id)
     {
         static int conn_num = 0;
         printf("[new connection][%d] %lx from %lx\n",
                ++conn_num, socket_id, from_socket_id);
     }
 
-    void recvMessageCallback(TcpService *service,
-                             TcpService::SocketId socket_id,
-                             DynamicBuffer *buffer)
+    void onRecvMessage(TcpService *service,
+                       TcpService::SocketId socket_id,
+                       DynamicBuffer *buffer)
     {
         std::string buffer_string(buffer->readBegin(), buffer->readableBytes());
         buffer->read(buffer->readableBytes());
@@ -65,16 +65,16 @@ public:
         }
     }
 
-    void peerCloseCallback(TcpService *service,
-                           TcpService::SocketId socket_id)
+    void onPeerClose(TcpService *service,
+                     TcpService::SocketId socket_id)
     {
         printf("[peer close] %lx\n", socket_id);
         service->closeSocket(socket_id);
     }
 
-    void errorCallback(TcpService *service,
-                       TcpService::SocketId socket_id,
-                       int error)
+    void onError(TcpService *service,
+                 TcpService::SocketId socket_id,
+                 int error)
     {
         printf("[error] %lx: %s\n", socket_id, strerror(error));
         service->closeSocket(socket_id);

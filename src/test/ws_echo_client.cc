@@ -20,11 +20,11 @@ public:
     WsEchoClient() : tcp_service_(io_service_), socket_id_(-1)
     {
         tcp_service_.setRecvMessageCallback(BRICKRED_BIND_MEM_FUNC(
-            &WsEchoClient::recvMessageCallback, this));
+            &WsEchoClient::onRecvMessage, this));
         tcp_service_.setPeerCloseCallback(BRICKRED_BIND_MEM_FUNC(
-            &WsEchoClient::peerCloseCallback, this));
+            &WsEchoClient::onPeerClose, this));
         tcp_service_.setErrorCallback(BRICKRED_BIND_MEM_FUNC(
-            &WsEchoClient::errorCallback, this));
+            &WsEchoClient::onError, this));
     }
 
     ~WsEchoClient()
@@ -51,9 +51,9 @@ public:
         return true;
     }
 
-    void recvMessageCallback(TcpService *service,
-                             TcpService::SocketId socket_id,
-                             DynamicBuffer *buffer)
+    void onRecvMessage(TcpService *service,
+                       TcpService::SocketId socket_id,
+                       DynamicBuffer *buffer)
     {
         for (;;) {
             WebSocketProtocol::RetCode::type ret =
@@ -96,16 +96,16 @@ public:
         }
     }
 
-    void peerCloseCallback(TcpService *service,
-                           TcpService::SocketId socket_id)
+    void onPeerClose(TcpService *service,
+                     TcpService::SocketId socket_id)
     {
         printf("[peer close] %lx\n", socket_id);
         quit();
     }
 
-    void errorCallback(TcpService *service,
-                       TcpService::SocketId socket_id,
-                       int error)
+    void onError(TcpService *service,
+                 TcpService::SocketId socket_id,
+                 int error)
     {
         printf("[error] %lx: %s\n", socket_id, strerror(error));
         quit();

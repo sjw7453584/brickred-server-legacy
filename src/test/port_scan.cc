@@ -210,11 +210,11 @@ public:
         started_scan_count_(0), finished_scan_count_(0)
     {
         tcp_service_.setNewConnectionCallback(BRICKRED_BIND_MEM_FUNC(
-            &PortScanner::newConnectionCallback, this));
+            &PortScanner::onNewConnection, this));
         tcp_service_.setPeerCloseCallback(BRICKRED_BIND_MEM_FUNC(
-            &PortScanner::peerCloseCallback, this));
+            &PortScanner::onPeerClose, this));
         tcp_service_.setErrorCallback(BRICKRED_BIND_MEM_FUNC(
-            &PortScanner::errorCallback, this));
+            &PortScanner::onError, this));
     }
 
     void scan(const SocketAddressRange &addr_range,
@@ -307,9 +307,9 @@ private:
         }
     }
 
-    void newConnectionCallback(TcpService *service,
-                               TcpService::SocketId from_socket_id,
-                               TcpService::SocketId socket_id)
+    void onNewConnection(TcpService *service,
+                         TcpService::SocketId from_socket_id,
+                         TcpService::SocketId socket_id)
     {
         SocketAddress peer_addr;
         if (service->getPeerAddress(socket_id, &peer_addr) == true) {
@@ -319,15 +319,15 @@ private:
         tryConnect();
     }
 
-    void peerCloseCallback(TcpService *service,
-                           TcpService::SocketId socket_id)
+    void onPeerClose(TcpService *service,
+                     TcpService::SocketId socket_id)
     {
         service->closeSocket(socket_id);
     }
 
-    void errorCallback(TcpService *service,
-                       TcpService::SocketId socket_id,
-                       int error)
+    void onError(TcpService *service,
+                 TcpService::SocketId socket_id,
+                 int error)
     {
         addFailed();
         service->closeSocket(socket_id);

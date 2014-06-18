@@ -146,12 +146,12 @@ public:
     void addAsyncConnectTimer(SocketId socket_id, int timeout_ms);
     void removeAsyncConnectTimer(SocketId socket_id);
 
-    void listenSocketReadCallback(IODevice *io_device);
-    void asyncConnectSocketWriteCallback(IODevice *io_device);
-    void asyncConnectTimeoutCallback(TimerId timer_id);
-    void socketReadCallback(IODevice *io_device);
-    void socketWriteCallback(IODevice *io_device);
-    void socketErrorCallback(IODevice *io_device);
+    void onListenSocketRead(IODevice *io_device);
+    void onAsyncConnectSocketWrite(IODevice *io_device);
+    void onAsyncConnectTimeout(TimerId timer_id);
+    void onSocketRead(IODevice *io_device);
+    void onSocketWrite(IODevice *io_device);
+    void onSocketError(IODevice *io_device);
 
     void sendCompleteCloseCallback(TcpService *service, SocketId socket_id);
 
@@ -214,9 +214,9 @@ TcpService::Impl::SocketId TcpService::Impl::buildListenSocket(
     SocketId socket_id = socket_id_allocator_.getId(socket->getDescriptor());
     socket->setId(socket_id);
     socket->setReadCallback(BRICKRED_BIND_MEM_FUNC(
-        &TcpService::Impl::listenSocketReadCallback, this));
+        &TcpService::Impl::onListenSocketRead, this));
     socket->setErrorCallback(BRICKRED_BIND_MEM_FUNC(
-        &TcpService::Impl::socketErrorCallback, this));
+        &TcpService::Impl::onSocketError, this));
 
     // attach io service
     socket->attachIOService(*io_service_);
@@ -240,9 +240,9 @@ TcpService::Impl::SocketId TcpService::Impl::buildConnectedSocket(
         socket_id_allocator_.getId(socket->getDescriptor());
     socket->setId(socket_id);
     socket->setReadCallback(BRICKRED_BIND_MEM_FUNC(
-        &TcpService::Impl::socketReadCallback, this));
+        &TcpService::Impl::onSocketRead, this));
     socket->setErrorCallback(BRICKRED_BIND_MEM_FUNC(
-        &TcpService::Impl::socketErrorCallback, this));
+        &TcpService::Impl::onSocketError, this));
 
     // attach io service
     socket->attachIOService(*io_service_);
@@ -280,9 +280,9 @@ TcpService::Impl::SocketId TcpService::Impl::buildAsyncConnectSocket(
         socket_id_allocator_.getId(socket->getDescriptor());
     socket->setId(socket_id);
     socket->setWriteCallback(BRICKRED_BIND_MEM_FUNC(
-        &TcpService::Impl::asyncConnectSocketWriteCallback, this));
+        &TcpService::Impl::onAsyncConnectSocketWrite, this));
     socket->setErrorCallback(BRICKRED_BIND_MEM_FUNC(
-        &TcpService::Impl::socketErrorCallback, this));
+        &TcpService::Impl::onSocketError, this));
 
     // attach io service
     socket->attachIOService(*io_service_);
@@ -322,7 +322,7 @@ void TcpService::Impl::addAsyncConnectTimer(SocketId socket_id, int timeout_ms)
 {
     TimerId timer_id =
         io_service_->startTimer(timeout_ms, BRICKRED_BIND_MEM_FUNC(
-            &TcpService::Impl::asyncConnectTimeoutCallback, this), 1);
+            &TcpService::Impl::onAsyncConnectTimeout, this), 1);
     async_connect_timers_[socket_id] = timer_id;
     async_connect_sockets_[timer_id] = socket_id;
 }
@@ -341,7 +341,7 @@ void TcpService::Impl::removeAsyncConnectTimer(SocketId socket_id)
     io_service_->stopTimer(timer_id);
 }
 
-void TcpService::Impl::listenSocketReadCallback(IODevice *io_device)
+void TcpService::Impl::onListenSocketRead(IODevice *io_device)
 {
     TcpSocket *listen_socket = static_cast<TcpSocket *>(io_device);
 
@@ -373,7 +373,7 @@ void TcpService::Impl::listenSocketReadCallback(IODevice *io_device)
     }
 }
 
-void TcpService::Impl::asyncConnectSocketWriteCallback(IODevice *io_device)
+void TcpService::Impl::onAsyncConnectSocketWrite(IODevice *io_device)
 {
     TcpSocket *socket = static_cast<TcpSocket *>(io_device);
 
@@ -396,7 +396,7 @@ void TcpService::Impl::asyncConnectSocketWriteCallback(IODevice *io_device)
         }
     } else {
         socket->setReadCallback(BRICKRED_BIND_MEM_FUNC(
-            &TcpService::Impl::socketReadCallback, this));
+            &TcpService::Impl::onSocketRead, this));
         socket->setWriteCallback(NullFunction());
         connection->setStatus(TcpConnection::Status::CONNECTED);
         if (new_conn_cb_) {
@@ -405,7 +405,7 @@ void TcpService::Impl::asyncConnectSocketWriteCallback(IODevice *io_device)
     }
 }
 
-void TcpService::Impl::asyncConnectTimeoutCallback(TimerId timer_id)
+void TcpService::Impl::onAsyncConnectTimeout(TimerId timer_id)
 {
     TimerId_SocketId_Map::iterator iter =
         async_connect_sockets_.find(timer_id);
@@ -435,7 +435,7 @@ void TcpService::Impl::asyncConnectTimeoutCallback(TimerId timer_id)
     }
 }
 
-void TcpService::Impl::socketReadCallback(IODevice *io_device)
+void TcpService::Impl::onSocketRead(IODevice *io_device)
 {
     TcpSocket *socket = static_cast<TcpSocket *>(io_device);
     SocketId socket_id = socket->getId();
@@ -505,7 +505,7 @@ void TcpService::Impl::socketReadCallback(IODevice *io_device)
     }
 }
 
-void TcpService::Impl::socketWriteCallback(IODevice *io_device)
+void TcpService::Impl::onSocketWrite(IODevice *io_device)
 {
     TcpSocket *socket = static_cast<TcpSocket *>(io_device);
 
@@ -542,7 +542,7 @@ void TcpService::Impl::socketWriteCallback(IODevice *io_device)
     }
 }
 
-void TcpService::Impl::socketErrorCallback(IODevice *io_device)
+void TcpService::Impl::onSocketError(IODevice *io_device)
 {
     TcpSocket *socket = static_cast<TcpSocket *>(io_device);
 
@@ -703,7 +703,7 @@ bool TcpService::Impl::sendMessage(SocketId socket_id,
         connection->setSendCompleteCallback(send_complete_cb);
         // set writeable callback
         socket->setWriteCallback(BRICKRED_BIND_MEM_FUNC(
-            &TcpService::Impl::socketWriteCallback, this));
+            &TcpService::Impl::onSocketWrite, this));
     } else {
         if (send_complete_cb) {
             send_complete_cb(thiz_, socket_id);

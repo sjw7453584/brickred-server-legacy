@@ -11,34 +11,34 @@
 
 using namespace brickred;
 
-void newConnectionCallback(TcpService *service,
-                           TcpService::SocketId from_socket_id,
-                           TcpService::SocketId socket_id)
+void onNewConnection(TcpService *service,
+                     TcpService::SocketId from_socket_id,
+                     TcpService::SocketId socket_id)
 {
     static int conn_num = 0;
     printf("[new connection][%d] %lx from %lx\n",
            ++conn_num, socket_id, from_socket_id);
 }
 
-void recvMessageCallback(TcpService *service,
-                         TcpService::SocketId socket_id,
-                         DynamicBuffer *buffer)
+void onRecvMessage(TcpService *service,
+                   TcpService::SocketId socket_id,
+                   DynamicBuffer *buffer)
 {
     std::string buffer_string(buffer->readBegin(), buffer->readableBytes());
     buffer->read(buffer->readableBytes());
     printf("[receive data] %lx: %s\n", socket_id, buffer_string.c_str());
 }
 
-void peerCloseCallback(TcpService *service,
-                       TcpService::SocketId socket_id)
+void onPeerClose(TcpService *service,
+                 TcpService::SocketId socket_id)
 {
     printf("[peer close] %lx\n", socket_id);
     service->closeSocket(socket_id);
 }
 
-void errorCallback(TcpService *service,
-                   TcpService::SocketId socket_id,
-                   int error)
+void onError(TcpService *service,
+             TcpService::SocketId socket_id,
+             int error)
 {
     printf("[error] %lx: %s\n", socket_id, strerror(error));
     service->closeSocket(socket_id);
@@ -54,13 +54,13 @@ int main(int argc, char *argv[])
     IOService io_service;
     TcpService net_service(io_service);
     net_service.setNewConnectionCallback(
-        BRICKRED_BIND_FREE_FUNC(&newConnectionCallback));
+        BRICKRED_BIND_FREE_FUNC(&onNewConnection));
     net_service.setRecvMessageCallback(
-        BRICKRED_BIND_FREE_FUNC(&recvMessageCallback));
+        BRICKRED_BIND_FREE_FUNC(&onRecvMessage));
     net_service.setPeerCloseCallback(
-        BRICKRED_BIND_FREE_FUNC(&peerCloseCallback));
+        BRICKRED_BIND_FREE_FUNC(&onPeerClose));
     net_service.setErrorCallback(
-        BRICKRED_BIND_FREE_FUNC(&errorCallback));
+        BRICKRED_BIND_FREE_FUNC(&onError));
 
     int conn_num = atoi(argv[3]);
     if (conn_num > 60000) {

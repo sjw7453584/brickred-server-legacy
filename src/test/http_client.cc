@@ -28,11 +28,11 @@ public:
     HttpClient() : tcp_service_(io_service_), socket_id_(-1)
     {
         tcp_service_.setRecvMessageCallback(BRICKRED_BIND_MEM_FUNC(
-            &HttpClient::recvMessageCallback, this));
+            &HttpClient::onRecvMessage, this));
         tcp_service_.setPeerCloseCallback(BRICKRED_BIND_MEM_FUNC(
-            &HttpClient::peerCloseCallback, this));
+            &HttpClient::onPeerClose, this));
         tcp_service_.setErrorCallback(BRICKRED_BIND_MEM_FUNC(
-            &HttpClient::errorCallback, this));
+            &HttpClient::onError, this));
     }
 
     ~HttpClient()
@@ -104,9 +104,9 @@ public:
         }
     }
 
-    void recvMessageCallback(TcpService *service,
-                             TcpService::SocketId socket_id,
-                             DynamicBuffer *buffer)
+    void onRecvMessage(TcpService *service,
+                       TcpService::SocketId socket_id,
+                       DynamicBuffer *buffer)
     {
         HttpProtocol::RetCode::type ret = protocol_.recvMessage(buffer);
         if (HttpProtocol::RetCode::WAITING_MORE_DATA == ret) {
@@ -130,16 +130,16 @@ public:
         }
     }
 
-    void peerCloseCallback(TcpService *service,
-                           TcpService::SocketId socket_id)
+    void onPeerClose(TcpService *service,
+                     TcpService::SocketId socket_id)
     {
         printf("[peer close] %lx\n", socket_id);
         quit();
     }
 
-    void errorCallback(TcpService *service,
-                       TcpService::SocketId socket_id,
-                       int error)
+    void onError(TcpService *service,
+                 TcpService::SocketId socket_id,
+                 int error)
     {
         printf("[error] %lx: %s\n", socket_id, strerror(error));
         quit();
