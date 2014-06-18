@@ -48,7 +48,7 @@ void errorCallback(TcpService *service,
     printf("[error] %lx: %s\n", socket_id, strerror(error));
 }
 
-void server_func(void *args)
+void server_func()
 {
     IOService io_service;
     TcpService net_service(io_service);
@@ -74,7 +74,7 @@ void server_func(void *args)
     io_service.loop();
 }
 
-void client_func(void *args)
+void client_func()
 {
     {
         LockGuard lock(g_mutex);

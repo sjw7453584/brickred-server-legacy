@@ -17,16 +17,16 @@ IODevice::~IODevice()
     detachIOService();
 }
 
-bool IODevice::attachIOService(IOService *io_service)
+bool IODevice::attachIOService(IOService &io_service)
 {
     if (io_service_ != NULL) {
         detachIOService();
     }
 
-    if (io_service->addIODevice(this) == false) {
+    if (io_service.addIODevice(this) == false) {
         return false;
     }
-    io_service_ = io_service;
+    io_service_ = &io_service;
 
     return true;
 }

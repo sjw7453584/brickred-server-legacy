@@ -13,7 +13,7 @@ public:
     Impl();
     ~Impl();
 
-    void start(ThreadFunc thread_func, void *thread_arg = NULL);
+    void start(ThreadFunc thread_func);
     bool joinable();
     void join();
     void detach();
@@ -25,7 +25,6 @@ public:
 private:
     pthread_t thread_handle_;
     ThreadFunc thread_func_;
-    void *thread_arg_;
     Mutex data_mutex_;
     ConditionVariable done_cond_;
     bool started_;
@@ -36,7 +35,7 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 Thread::Impl::Impl() :
-    thread_handle_(0), thread_arg_(0),
+    thread_handle_(0),
     started_(false), done_(false), join_started_(false), joined_(false)
 {
 }
@@ -48,7 +47,7 @@ Thread::Impl::~Impl()
     }
 }
 
-void Thread::Impl::start(ThreadFunc thread_func, void *thread_arg)
+void Thread::Impl::start(ThreadFunc thread_func)
 {
     LockGuard lock(data_mutex_);
 
@@ -57,11 +56,8 @@ void Thread::Impl::start(ThreadFunc thread_func, void *thread_arg)
     }
 
     thread_func_ = thread_func;
-    thread_arg_ = thread_arg;
 
     if (::pthread_create(&thread_handle_, NULL, &threadProxy, this) != 0) {
-        started_ = false;
-        thread_arg_ = NULL;
         throw SystemErrorException("create thread failed in pthread_create");
     }
 
@@ -118,7 +114,7 @@ void Thread::Impl::detach()
 
 void Thread::Impl::run()
 {
-    thread_func_(thread_arg_);
+    thread_func_();
 }
 
 void *Thread::Impl::threadProxy(void *arg)
@@ -144,9 +140,9 @@ Thread::~Thread()
 {
 }
 
-void Thread::start(ThreadFunc thread_func, void *thread_arg)
+void Thread::start(ThreadFunc thread_func)
 {
-    pimpl_->start(thread_func, thread_arg);
+    pimpl_->start(thread_func);
 }
 
 bool Thread::joinable()

@@ -17,7 +17,7 @@ public:
 
     void log(const char *buffer, size_t size);
 
-    void logThreadFunc(void *args);
+    void logThreadFunc();
 
 private:
     LogSink *adapted_sink_;
@@ -34,7 +34,7 @@ LogAsyncSink::Impl::Impl(LogSink *adapted_sink, size_t queue_size) :
     adapted_sink_(adapted_sink), queue_(queue_size)
 {
     log_thread_.start(BRICKRED_BIND_MEM_FUNC(
-        &LogAsyncSink::Impl::logThreadFunc, this), NULL);
+        &LogAsyncSink::Impl::logThreadFunc, this));
 }
 
 LogAsyncSink::Impl::~Impl()
@@ -61,7 +61,7 @@ void LogAsyncSink::Impl::log(const char *buffer, size_t size)
     queue_buffer.release();
 }
 
-void LogAsyncSink::Impl::logThreadFunc(void *args)
+void LogAsyncSink::Impl::logThreadFunc()
 {
     for (;;) {
         DynamicBuffer *queue_buffer_raw = NULL;

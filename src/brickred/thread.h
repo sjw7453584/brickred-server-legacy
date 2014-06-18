@@ -11,12 +11,12 @@ namespace brickred {
 
 class Thread {
 public:
-    typedef Function<void (void *)> ThreadFunc;
+    typedef Function<void ()> ThreadFunc;
 
     Thread();
     ~Thread();
 
-    void start(ThreadFunc thread_func, void *thread_arg = NULL);
+    void start(ThreadFunc thread_func);
     bool joinable();
     void join();
     void detach();

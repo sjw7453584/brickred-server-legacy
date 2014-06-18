@@ -219,7 +219,7 @@ TcpService::Impl::SocketId TcpService::Impl::buildListenSocket(
         &TcpService::Impl::socketErrorCallback, this));
 
     // attach io service
-    socket->attachIOService(io_service_);
+    socket->attachIOService(*io_service_);
 
     if (sockets_.find(socket_id) != sockets_.end()) {
         BASE_ERROR("socket(%lx) already in socket map", socket_id);
@@ -245,7 +245,7 @@ TcpService::Impl::SocketId TcpService::Impl::buildConnectedSocket(
         &TcpService::Impl::socketErrorCallback, this));
 
     // attach io service
-    socket->attachIOService(io_service_);
+    socket->attachIOService(*io_service_);
 
     UniquePtr<TcpConnection> connection(new TcpConnection(socket.get(),
                                         conn_read_buffer_init_size_,
@@ -285,7 +285,7 @@ TcpService::Impl::SocketId TcpService::Impl::buildAsyncConnectSocket(
         &TcpService::Impl::socketErrorCallback, this));
 
     // attach io service
-    socket->attachIOService(io_service_);
+    socket->attachIOService(*io_service_);
 
     UniquePtr<TcpConnection> connection(new TcpConnection(socket.get(),
                                         conn_read_buffer_init_size_,

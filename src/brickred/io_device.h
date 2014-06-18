@@ -22,7 +22,7 @@ public:
     IODevice();
     virtual ~IODevice();
 
-    bool attachIOService(IOService *io_service);
+    bool attachIOService(IOService &io_service);
     void detachIOService();
     int64_t getId() const { return id_; }
     void setId(int64_t id) { id_ = id; }

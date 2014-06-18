@@ -12,7 +12,7 @@ bool g_server_started = false;
 Mutex g_mutex;
 ConditionVariable g_server_started_cond;
 
-void server_func(void *args)
+void server_func()
 {
     TcpSocket listen_sock;
     if (listen_sock.passiveOpen(SocketAddress("127.0.0.1", 2000)) == false) {
@@ -38,7 +38,7 @@ void server_func(void *args)
     }
 }
 
-void client_func(void *args)
+void client_func()
 {
     {
         LockGuard lock(g_mutex);
