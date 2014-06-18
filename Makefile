@@ -38,6 +38,8 @@ ifeq ($(BR_BUILD_TEST), yes)
 	@$(MAKE) -f mak/test/dns_query.mak $@
 	@$(call ECHO, "[build echo_server]")
 	@$(MAKE) -f mak/test/echo_server.mak $@
+	@$(call ECHO, "[build echo_server2]")
+	@$(MAKE) -f mak/test/echo_server2.mak $@
 	@$(call ECHO, "[build echo_client]")
 	@$(MAKE) -f mak/test/echo_client.mak $@
 	@$(call ECHO, "[build flash_policy]")
