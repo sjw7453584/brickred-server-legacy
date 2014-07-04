@@ -31,7 +31,7 @@ static bool isOption(const std::string &arg)
 
 static bool isLongOption(const std::string &arg)
 {
-    return  arg.size() > 2 && arg[0] == '-' && arg[1] == '-';
+    return arg.size() > 2 && arg[0] == '-' && arg[1] == '-';
 }
 
 static int processLongOption(

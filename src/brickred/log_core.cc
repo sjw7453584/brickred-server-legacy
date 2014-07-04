@@ -71,7 +71,8 @@ void Logger::log(int level, const char *filename, int line,
                 count = ::vsnprintf(buffer, sizeof(buffer), format, args);
             } else {
                 count = formatter_(buffer, sizeof(buffer),
-                                   level, filename, line, function, format, args);
+                                   level, filename, line, function,
+                                   format, args);
             }
             buffer_ready = true;
         }

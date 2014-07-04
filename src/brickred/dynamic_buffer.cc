@@ -6,7 +6,8 @@
 namespace brickred {
 
 DynamicBuffer::DynamicBuffer(size_t init_size, size_t expand_size) :
-    buffer_(init_size), expand_size_(expand_size), read_index_(0), write_index_(0)
+    buffer_(init_size), expand_size_(expand_size),
+    read_index_(0), write_index_(0)
 {
 }
 

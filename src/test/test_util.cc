@@ -78,7 +78,8 @@ TestTimer::Impl::~Impl()
               << "user:" << user_time << "s  "
               << "system:" << system_time << "s  "
               << std::setprecision(1)
-              << "cpu:"  << (user_time + system_time) / monotonic_time * 100.0 << "%"
+              << "cpu:"
+              << (user_time + system_time) / monotonic_time * 100.0 << "%"
               << std::endl;
 }
 

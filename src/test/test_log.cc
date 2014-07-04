@@ -36,8 +36,10 @@ int main(void)
         TestTimer timer;
 
         LogCore::getInstance()->registerLogger(1);
-        UniquePtr<LogFileSink> file_sink(new LogFileSink("test2_%Y_%m_%d.log"));
-        UniquePtr<LogAsyncSink> async_sink(new LogAsyncSink(file_sink.get()));
+        UniquePtr<LogFileSink> file_sink(
+            new LogFileSink("test2_%Y_%m_%d.log"));
+        UniquePtr<LogAsyncSink> async_sink(
+            new LogAsyncSink(file_sink.get()));
         file_sink.release();
         if (LogCore::getInstance()->addSink(1, async_sink.get(), 0) == false) {
             return -1;

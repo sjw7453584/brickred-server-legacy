@@ -179,7 +179,8 @@ int main(int argc, char *argv[])
     options.addOption("r", CommandLineOption::ParameterType::REQUIRED);
     options.addOption("H");
     options.addOption("host", CommandLineOption::ParameterType::REQUIRED);
-    options.addOption("user-agent", CommandLineOption::ParameterType::REQUIRED);
+    options.addOption("user-agent",
+                      CommandLineOption::ParameterType::REQUIRED);
 
     if (options.parse(argc, argv) == false) {
         printUsage(argv[0]);

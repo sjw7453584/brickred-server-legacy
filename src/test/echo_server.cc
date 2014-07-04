@@ -54,7 +54,8 @@ public:
                        TcpService::SocketId socket_id,
                        DynamicBuffer *buffer)
     {
-        std::string buffer_string(buffer->readBegin(), buffer->readableBytes());
+        std::string buffer_string(buffer->readBegin(),
+                                  buffer->readableBytes());
         buffer->read(buffer->readableBytes());
 
         // echo back

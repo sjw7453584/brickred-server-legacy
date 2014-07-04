@@ -751,7 +751,8 @@ void TcpService::Impl::closeSocket(SocketId socket_id)
     }
 }
 
-TcpService::Impl::Context *TcpService::Impl::getContext(SocketId socket_id) const
+TcpService::Impl::Context *TcpService::Impl::getContext(
+    SocketId socket_id) const
 {
     ContextMap::const_iterator iter = contexts_.find(socket_id);
     if (iter != contexts_.end()) {
