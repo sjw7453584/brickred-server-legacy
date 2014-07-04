@@ -97,4 +97,3 @@ void DynamicBuffer::clear()
 }
 
 } // namespace brickred
-

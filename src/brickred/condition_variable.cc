@@ -91,4 +91,3 @@ void *ConditionVariable::nativeHandle()
 }
 
 } // namespace brickred
-

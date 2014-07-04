@@ -19,7 +19,7 @@ public:
     void seed(uint32_t s);
     void seed(uint32_t key[], size_t key_length);
 
-    // uniformly distributed on range [0, 0xffffffff] 
+    // uniformly distributed on range [0, 0xffffffff]
     uint32_t nextInt();
     // uniformly distributed on range [0, max)
     uint32_t nextInt(uint32_t max);
@@ -36,4 +36,3 @@ private:
 } // namespace brickred
 
 #endif
-

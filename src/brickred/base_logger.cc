@@ -22,7 +22,7 @@ static void defaultLogFunc(int level, const char *format, va_list args) {
     };
 
     ::fprintf(stderr, "[%s] ", log_level_string[level]);
-    ::vfprintf(stderr, format, args); 
+    ::vfprintf(stderr, format, args);
     ::fprintf(stderr, "\n");
 }
 
@@ -50,4 +50,3 @@ void BaseLogger::log(int level, const char *format, ...)
 } // namespace brickred
 
 #endif // _BRICKRED_BUILD_DISABLE_BASE_LOG_
-

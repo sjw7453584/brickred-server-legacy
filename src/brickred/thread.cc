@@ -161,4 +161,3 @@ void Thread::detach()
 }
 
 } // namespace brickred
-

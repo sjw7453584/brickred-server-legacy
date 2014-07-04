@@ -730,4 +730,3 @@ bool WebSocketProtocol::sendPingFrame()
 
 } // namespace protocol
 } // namespace brickred
-

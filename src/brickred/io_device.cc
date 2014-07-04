@@ -92,4 +92,3 @@ bool IODevice::setCloseOnExec()
 }
 
 } // namespace brickred
-

@@ -128,7 +128,7 @@ bool SocketAddress::Impl::setNativeAddress(const void *native_addr)
 
     ip_ = ip;
     port_ = port;
-    protocol_ = protocol; 
+    protocol_ = protocol;
     native_addr_size_ = native_addr_size;
     memcpy(&native_addr_, native_addr, native_addr_size);
     translated_ = true;
@@ -294,7 +294,7 @@ void SocketAddress::ipV4BinToText(uint32_t binary, std::string *text)
 std::string SocketAddress::ipV4BinToText(uint32_t binary)
 {
     std::string text;
-    ipV4BinToText(binary, &text);  
+    ipV4BinToText(binary, &text);
     return text;
 }
 
@@ -332,9 +332,8 @@ void SocketAddress::ipV6BinToText(const uint8_t binary[16], std::string *text)
 std::string SocketAddress::ipV6BinToText(const uint8_t binary[16])
 {
     std::string text;
-    ipV6BinToText(binary, &text);  
+    ipV6BinToText(binary, &text);
     return text;
 }
 
 } // namespace brickred
-

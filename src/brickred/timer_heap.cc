@@ -304,4 +304,3 @@ void TimerHeap::checkTimeout(const Timestamp &now)
 }
 
 }  // namespace brickred
-

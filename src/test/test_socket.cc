@@ -1,4 +1,4 @@
-#include <iostream> 
+#include <iostream>
 
 #include <brickred/condition_variable.h>
 #include <brickred/mutex.h>
@@ -67,4 +67,3 @@ int main(void)
     server.join();
     client.join();
 }
-

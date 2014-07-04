@@ -604,7 +604,7 @@ TcpService::Impl::SocketId TcpService::Impl::asyncConnect(
     }
 
     if (socket->connect(addr) == true) {
-        // connection is completed immediately 
+        // connection is completed immediately
         SocketId socket_id = buildConnectedSocket(socket);
         if (-1 == socket_id) {
             return - 1;
@@ -951,4 +951,3 @@ void TcpService::setSendBufferExpandSize(size_t size)
 }
 
 } // namespace brickred
-

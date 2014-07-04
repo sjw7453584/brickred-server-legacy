@@ -59,4 +59,3 @@ private:
 #endif // BRICKRED_BUILD_DISABLE_BASE_LOG
 
 #endif // BRICKRED_BASE_LOGGER_H
-

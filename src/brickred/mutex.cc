@@ -83,4 +83,3 @@ void *Mutex::nativeHandle()
 }
 
 } // namespace brickred
-

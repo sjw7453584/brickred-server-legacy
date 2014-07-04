@@ -192,10 +192,10 @@ size_t Hash::operator()(const std::string &str) const
     return h;
 }
 
-bool CaseInsensitiveLess::operator()(const std::string &lhs, 
+bool CaseInsensitiveLess::operator()(const std::string &lhs,
                                      const std::string &rhs) const
 {
-    size_t comp_size = std::min(lhs.size(), rhs.size()); 
+    size_t comp_size = std::min(lhs.size(), rhs.size());
 
     for (size_t i = 0; i < comp_size; ++i) {
         int c1 = ::tolower(lhs[i]);
@@ -215,4 +215,3 @@ bool CaseInsensitiveLess::operator()(const std::string &lhs,
 
 } // namespace string_util
 } // namespace brickred
-

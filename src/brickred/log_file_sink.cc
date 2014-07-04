@@ -74,7 +74,7 @@ void LogFileSink::Impl::log(const char *buffer, size_t size)
         return;
     }
 
-    ::fwrite(buffer, size, 1, fp_); 
+    ::fwrite(buffer, size, 1, fp_);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -98,4 +98,3 @@ bool LogFileSink::openFile()
 }
 
 } // namespace brickred
-

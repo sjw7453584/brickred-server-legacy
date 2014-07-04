@@ -149,7 +149,7 @@ bool IOService::Impl::updateIODevice(IODevice *io_device)
 
 bool IOService::Impl::checkIODeviceExist(IODevice *io_device) const
 {
-    return removed_io_devices_.find((intptr_t)io_device) == 
+    return removed_io_devices_.find((intptr_t)io_device) ==
            removed_io_devices_.end();
 }
 
@@ -207,7 +207,7 @@ void IOService::Impl::loop()
         now.setNow();
         timer_heap_.checkTimeout(now);
 
-        // clear removed io devices 
+        // clear removed io devices
         removed_io_devices_.clear();
 
         // resize event list
@@ -284,4 +284,3 @@ void IOService::stopTimer(TimerId timer_id)
 }
 
 } // namespace brickred
-

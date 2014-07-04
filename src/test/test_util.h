@@ -15,7 +15,7 @@ public:
 private:
     BRICKRED_NONCOPYABLE(TestTimer)
 
-    class Impl; 
+    class Impl;
     brickred::UniquePtr<Impl> pimpl_;
 };
 

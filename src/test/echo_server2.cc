@@ -221,4 +221,3 @@ int main(int argc, char *argv[])
     LogicThread::getInstance()->join();
     NetworkThread::getInstance()->join();
 }
-

@@ -62,4 +62,3 @@ const std::string &HttpRequest::MethodEnumToStr(Method::type method_enum)
 
 } // namespace protocol
 } // namespace brickred
-

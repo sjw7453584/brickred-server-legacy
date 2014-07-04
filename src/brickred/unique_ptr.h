@@ -56,4 +56,3 @@ inline void swap(UniquePtr<T> &a, UniquePtr<T> &b)
 } // namespace brickred
 
 #endif
-

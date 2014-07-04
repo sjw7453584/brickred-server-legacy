@@ -1,8 +1,8 @@
-/* 
+/*
  *  Based on MT19937 Coded by Takuji Nishimura and Makoto Matsumoto.
 
  *  Copyright (C) 1997 - 2002, Makoto Matsumoto and Takuji Nishimura,
- *  All rights reserved.                          
+ *  All rights reserved.
 
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -15,8 +15,8 @@
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
 
- *    3. The names of its contributors may not be used to endorse or promote 
- *       products derived from this software without specific prior written 
+ *    3. The names of its contributors may not be used to endorse or promote
+ *       products derived from this software without specific prior written
  *       permission.
 
  *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -124,7 +124,7 @@ void Random::Impl::seed(uint32_t key[], size_t key_length)
         if (j >= (int)key_length) {
             j = 0;
         }
-    }   
+    }
     for (k = N - 1; k > 0; k--) {
         // non linear
         mt_[i] = (mt_[i] ^ ((mt_[i - 1] ^ (mt_[i - 1] >> 30)) * 1566083941))
@@ -135,7 +135,7 @@ void Random::Impl::seed(uint32_t key[], size_t key_length)
             mt_[0] = mt_[N - 1];
             i = 1;
         }
-    }   
+    }
 
     // MSB is 1; assuring non-zero initial array
     mt_[0] = 0x80000000;
@@ -235,4 +235,3 @@ double Random::nextDouble()
 }
 
 } // namespace brickred
-

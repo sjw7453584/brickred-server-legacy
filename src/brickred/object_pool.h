@@ -18,19 +18,19 @@ public:
     }
 
     T *getObject()
-    {   
+    {
         if (!reused_object_list_.empty()) {
             T *obj = reused_object_list_.back();
             reused_object_list_.pop_back();
             return obj;
-        }   
+        }
         return new T();
-    }   
+    }
 
     void returnObject(T *obj)
-    {   
+    {
         reused_object_list_.push_back(obj);
-    }   
+    }
 
 private:
     std::vector<T *> reused_object_list_;
@@ -39,4 +39,3 @@ private:
 } // namespace brickred
 
 #endif
-

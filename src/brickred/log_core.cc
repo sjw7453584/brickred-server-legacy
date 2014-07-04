@@ -8,7 +8,7 @@
 
 namespace brickred {
 
-#define MAX_LOGGER_COUNT 8 
+#define MAX_LOGGER_COUNT 8
 #define LOG_BUFFER_SIZE 4096
 
 class Logger {
@@ -93,7 +93,7 @@ public:
     void removeLogger(int logger_id);
     bool addSink(int logger_id, LogSink *sink, int level_filter);
     void log(int logger_id, int level, const char *filename,
-             int line, const char *function, 
+             int line, const char *function,
              const char *format, va_list args);
 
 private:
@@ -200,4 +200,3 @@ void LogCore::log(int logger_id, int level, const char *filename,
 }
 
 } // namespace brickred
-

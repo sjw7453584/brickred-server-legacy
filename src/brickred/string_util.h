@@ -42,4 +42,3 @@ struct CaseInsensitiveLess {
 } // namespace brickred
 
 #endif
-

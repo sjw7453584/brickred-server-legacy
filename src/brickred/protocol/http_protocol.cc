@@ -48,7 +48,7 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 HttpProtocol::Impl::StatusHandler HttpProtocol::Impl::s_status_handler_[] = {
-    &HttpProtocol::Impl::readStartLine,   
+    &HttpProtocol::Impl::readStartLine,
     &HttpProtocol::Impl::readHeader,
     &HttpProtocol::Impl::readBody,
     NULL,
@@ -148,7 +148,7 @@ int HttpProtocol::Impl::readStartLine(DynamicBuffer *buffer)
 
         buffer->read(line_length + 2);
         this->message_ = response.release();
-        this->status_ = Status::READING_HEADER; 
+        this->status_ = Status::READING_HEADER;
 
         return 1;
 
@@ -175,7 +175,7 @@ int HttpProtocol::Impl::readStartLine(DynamicBuffer *buffer)
 
         buffer->read(line_length + 2);
         this->message_ = request.release();
-        this->status_ = Status::READING_HEADER; 
+        this->status_ = Status::READING_HEADER;
 
         return 1;
     }
@@ -189,7 +189,7 @@ int HttpProtocol::Impl::readHeader(DynamicBuffer *buffer)
 
     if (::memcmp(buffer->readBegin(), "\r\n", 2) == 0) {
         buffer->read(2);
-        this->status_ = Status::FINISHED; 
+        this->status_ = Status::FINISHED;
         return 1;
     }
 
@@ -235,7 +235,7 @@ int HttpProtocol::Impl::readBody(DynamicBuffer *buffer)
         message_->setBody(buffer->readBegin(), content_length);
 
         buffer->read(content_length);
-        this->status_ = Status::FINISHED; 
+        this->status_ = Status::FINISHED;
         return 1;
     }
 
@@ -246,7 +246,7 @@ int HttpProtocol::Impl::readBody(DynamicBuffer *buffer)
         }
 
         for (;;) {
-            const char *buffer_start = buffer->readBegin(); 
+            const char *buffer_start = buffer->readBegin();
             size_t buffer_size = buffer->readableBytes();
 
             const char *crlf =
@@ -292,14 +292,14 @@ int HttpProtocol::Impl::readBody(DynamicBuffer *buffer)
                 message_->removeHeader("Transfer-Encoding");
 
                 // read tailer header
-                this->status_ = Status::READING_HEADER; 
+                this->status_ = Status::READING_HEADER;
                 return 1;
             }
         }
 
     }
 
-    this->status_ = Status::FINISHED; 
+    this->status_ = Status::FINISHED;
     return 1;
 }
 
@@ -433,4 +433,3 @@ void HttpProtocol::writeMessage(const HttpMessage &message,
 
 } // namespace protocol
 } // namespace brickred
-

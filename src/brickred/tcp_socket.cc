@@ -261,4 +261,3 @@ bool TcpSocket::acceptNonblock(TcpSocket *peer)
 }
 
 } // namespace brickred
-

@@ -84,4 +84,3 @@ bool SelfPipe::setCloseOnExec()
 }
 
 } // namespace brickred
-

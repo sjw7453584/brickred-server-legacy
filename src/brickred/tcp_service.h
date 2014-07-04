@@ -79,4 +79,3 @@ private:
 } // namespace brickred
 
 #endif
-

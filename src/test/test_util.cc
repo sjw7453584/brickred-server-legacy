@@ -8,7 +8,7 @@
 #include <iomanip>
 
 namespace test {
-    
+
 class TestTimer::Impl {
 public:
     Impl();
@@ -51,7 +51,7 @@ TestTimer::Impl::~Impl()
     times(&current_cpu_time);
 
     double clock_tick = sysconf(_SC_CLK_TCK);
-    double real_time = 
+    double real_time =
         ((current_real_time.tv_sec -
           start_real_time_.tv_sec) * 1000000000LL +
          (current_real_time.tv_nsec -

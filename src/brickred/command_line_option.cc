@@ -212,4 +212,3 @@ const CommandLineOption::ParameterVector &CommandLineOption::getParameters(
 }
 
 } // namespace brickred
-

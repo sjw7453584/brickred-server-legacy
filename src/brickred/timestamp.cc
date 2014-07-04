@@ -86,4 +86,3 @@ size_t Timestamp::format(char *buffer, size_t size,
 }
 
 } // namespace brickred
-

@@ -137,4 +137,3 @@ const std::string &HttpMessage::VersionEnumToStr(Version::type version_enum)
 
 } // namespace protocol
 } // namespace brickred
-

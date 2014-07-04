@@ -21,4 +21,3 @@ std::string base64Decode(const char *buffer, size_t size);
 } // namespace brickred
 
 #endif
-

@@ -34,4 +34,3 @@ void HttpResponse::setReasonPhrase(const std::string &reason_phrase)
 
 } // namespace protocol
 } // namespace brickred
-

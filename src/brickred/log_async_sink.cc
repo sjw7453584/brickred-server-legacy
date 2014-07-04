@@ -100,4 +100,3 @@ void LogAsyncSink::log(const char *buffer, size_t size)
 }
 
 } // namespace brickred
-

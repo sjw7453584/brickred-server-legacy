@@ -184,4 +184,3 @@ std::string sha1Binary(const char *buffer, size_t size)
 
 } // namespace codec
 } // namespace brickred
-

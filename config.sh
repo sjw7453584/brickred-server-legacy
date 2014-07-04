@@ -61,4 +61,3 @@ fi
 echo "BR_INSTALL_PREFIX = $opt_prefix" >config.mak
 echo "BR_BUILD_TEST = $opt_build_test" >>config.mak
 echo "BR_CORE_CPP_FLAG = $core_cpp_flag" >>config.mak
-

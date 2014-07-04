@@ -19,4 +19,3 @@ public:
 } // namespace brickred
 
 #endif
-

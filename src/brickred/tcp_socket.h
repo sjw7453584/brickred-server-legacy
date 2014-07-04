@@ -56,4 +56,3 @@ public:
 } // namespace brickred
 
 #endif
-

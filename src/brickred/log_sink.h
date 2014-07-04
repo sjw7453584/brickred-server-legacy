@@ -6,7 +6,7 @@
 #include <brickred/class_util.h>
 
 namespace brickred {
-    
+
 class LogSink {
 public:
     LogSink() {}
@@ -21,4 +21,3 @@ private:
 } // namespace brickred
 
 #endif
-

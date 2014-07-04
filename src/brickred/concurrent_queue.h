@@ -9,7 +9,7 @@
 #include <brickred/mutex.h>
 
 namespace brickred {
-    
+
 template <class T>
 class ConcurrentQueue {
 public:
@@ -117,4 +117,3 @@ private:
 } // namespace brickred
 
 #endif
-

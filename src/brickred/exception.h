@@ -15,4 +15,3 @@ public:
 } // namespace brickred
 
 #endif
-

@@ -63,4 +63,3 @@ endif
 install:
 	@$(call ECHO, "[install libbrickredcore]")
 	@$(MAKE) -f mak/libbrickredcore.mak $@
-
