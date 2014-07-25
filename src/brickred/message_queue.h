@@ -41,7 +41,7 @@ public:
         return io_service_;
     }
 
-    void setRecvMessageCallback(RecvMessageCallback recv_message_cb)
+    void setRecvMessageCallback(const RecvMessageCallback &recv_message_cb)
     {
         recv_message_cb_ = recv_message_cb;
     }

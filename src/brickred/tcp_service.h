@@ -58,10 +58,10 @@ public:
     Context *getContext(SocketId socket_id) const;
     bool setContext(SocketId socket_id, Context *context);
 
-    void setNewConnectionCallback(NewConnectionCallback new_conn_cb);
-    void setRecvMessageCallback(RecvMessageCallback recv_message_cb);
-    void setPeerCloseCallback(PeerCloseCallback peer_close_cb);
-    void setErrorCallback(ErrorCallback error_cb);
+    void setNewConnectionCallback(const NewConnectionCallback &new_conn_cb);
+    void setRecvMessageCallback(const RecvMessageCallback &recv_message_cb);
+    void setPeerCloseCallback(const PeerCloseCallback &peer_close_cb);
+    void setErrorCallback(const ErrorCallback &error_cb);
 
     void setRecvBufferInitSize(size_t size = 1024);
     void setRecvBufferExpandSize(size_t size = 1024);

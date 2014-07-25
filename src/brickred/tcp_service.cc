@@ -61,7 +61,9 @@ public:
     const SendCompleteCallback &getSendCompleteCallback() const {
         return send_complete_cb_;
     }
-    void setSendCompleteCallback(SendCompleteCallback send_complete_cb) {
+    void setSendCompleteCallback(
+        const SendCompleteCallback &send_complete_cb)
+    {
         send_complete_cb_ = send_complete_cb;
     }
 
@@ -126,10 +128,10 @@ public:
     Context *getContext(SocketId socket_id) const;
     bool setContext(SocketId socket_id, Context *context);
 
-    void setNewConnectionCallback(NewConnectionCallback new_conn_cb);
-    void setRecvMessageCallback(RecvMessageCallback recv_message_cb);
-    void setPeerCloseCallback(PeerCloseCallback peer_close_cb);
-    void setErrorCallback(ErrorCallback error_cb);
+    void setNewConnectionCallback(const NewConnectionCallback &new_conn_cb);
+    void setRecvMessageCallback(const RecvMessageCallback &recv_message_cb);
+    void setPeerCloseCallback(const PeerCloseCallback &peer_close_cb);
+    void setErrorCallback(const ErrorCallback &error_cb);
 
     void setRecvBufferInitSize(size_t size);
     void setRecvBufferExpandSize(size_t size);
@@ -493,7 +495,7 @@ void TcpService::Impl::onSocketRead(IODevice *io_device)
     }
     if (peer_close) {
         if (data_arrive) {
-            // check recv message callback closed socket or not;
+            // check recv message callback closed socket or not
             if (connections_.find(socket_id) == connections_.end()) {
                 return;
             }
@@ -782,23 +784,25 @@ bool TcpService::Impl::setContext(SocketId socket_id, Context *context)
 }
 
 void TcpService::Impl::setNewConnectionCallback(
-    NewConnectionCallback new_conn_cb)
+    const NewConnectionCallback &new_conn_cb)
 {
     new_conn_cb_ = new_conn_cb;
 }
 
 void TcpService::Impl::setRecvMessageCallback(
-    RecvMessageCallback recv_message_cb)
+    const RecvMessageCallback &recv_message_cb)
 {
     recv_message_cb_ = recv_message_cb;
 }
 
-void TcpService::Impl::setErrorCallback(ErrorCallback error_cb)
+void TcpService::Impl::setErrorCallback(
+    const ErrorCallback &error_cb)
 {
     error_cb_ = error_cb;
 }
 
-void TcpService::Impl::setPeerCloseCallback(PeerCloseCallback peer_close_cb)
+void TcpService::Impl::setPeerCloseCallback(
+    const PeerCloseCallback &peer_close_cb)
 {
     peer_close_cb_ = peer_close_cb;
 }
@@ -906,22 +910,26 @@ bool TcpService::setContext(SocketId socket_id, Context *context)
     return pimpl_->setContext(socket_id, context);
 }
 
-void TcpService::setNewConnectionCallback(NewConnectionCallback new_conn_cb)
+void TcpService::setNewConnectionCallback(
+    const NewConnectionCallback &new_conn_cb)
 {
     pimpl_->setNewConnectionCallback(new_conn_cb);
 }
 
-void TcpService::setRecvMessageCallback(RecvMessageCallback recv_message_cb)
+void TcpService::setRecvMessageCallback(
+    const RecvMessageCallback &recv_message_cb)
 {
     pimpl_->setRecvMessageCallback(recv_message_cb);
 }
 
-void TcpService::setErrorCallback(ErrorCallback error_cb)
+void TcpService::setErrorCallback(
+    const ErrorCallback &error_cb)
 {
     pimpl_->setErrorCallback(error_cb);
 }
 
-void TcpService::setPeerCloseCallback(PeerCloseCallback peer_close_cb)
+void TcpService::setPeerCloseCallback(
+    const PeerCloseCallback &peer_close_cb)
 {
     pimpl_->setPeerCloseCallback(peer_close_cb);
 }

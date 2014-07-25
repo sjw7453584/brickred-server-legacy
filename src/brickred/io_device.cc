@@ -40,7 +40,7 @@ void IODevice::detachIOService()
     io_service_ = NULL;
 }
 
-void IODevice::setReadCallback(ReadCallback read_cb)
+void IODevice::setReadCallback(const ReadCallback &read_cb)
 {
     read_cb_ = read_cb;
     if (io_service_ != NULL) {
@@ -48,7 +48,7 @@ void IODevice::setReadCallback(ReadCallback read_cb)
     }
 }
 
-void IODevice::setWriteCallback(WriteCallback write_cb)
+void IODevice::setWriteCallback(const WriteCallback &write_cb)
 {
     write_cb_ = write_cb;
     if (io_service_ != NULL) {
@@ -56,7 +56,7 @@ void IODevice::setWriteCallback(WriteCallback write_cb)
     }
 }
 
-void IODevice::setErrorCallback(ErrorCallback error_cb)
+void IODevice::setErrorCallback(const ErrorCallback &error_cb)
 {
     error_cb_ = error_cb;
 }

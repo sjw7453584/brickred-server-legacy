@@ -39,7 +39,7 @@ public:
     void loop();
     void quit();
 
-    TimerId startTimer(int timeout_ms, TimerCallback timer_cb,
+    TimerId startTimer(int timeout_ms, const TimerCallback &timer_cb,
                        int call_times);
     void stopTimer(TimerId timer_id);
 
@@ -224,7 +224,7 @@ void IOService::Impl::quit()
 }
 
 IOService::Impl::TimerId IOService::Impl::startTimer(int timeout_ms,
-    TimerCallback timer_cb, int call_times)
+    const TimerCallback &timer_cb, int call_times)
 {
     Timestamp now;
     now.setNow();
@@ -274,7 +274,7 @@ void IOService::quit()
 }
 
 IOService::TimerId IOService::startTimer(int timeout_ms,
-    TimerCallback timer_cb, int call_times)
+    const TimerCallback &timer_cb, int call_times)
 {
     return pimpl_->startTimer(timeout_ms, timer_cb, call_times);
 }

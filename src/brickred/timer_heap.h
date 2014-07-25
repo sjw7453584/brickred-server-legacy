@@ -22,7 +22,7 @@ public:
 
     int64_t getNextTimeoutMillisecond(const Timestamp &now) const;
     TimerId addTimer(const Timestamp &now, int timeout_ms,
-                     TimerCallback timer_cb,
+                     const TimerCallback &timer_cb,
                      int call_times = -1);
     void removeTimer(TimerId timer_id);
     void checkTimeout(const Timestamp &now);

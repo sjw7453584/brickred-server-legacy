@@ -32,9 +32,9 @@ public:
     const ReadCallback &getReadCallback() const { return read_cb_; }
     const WriteCallback &getWriteCallback() const { return write_cb_; }
     const ErrorCallback &getErrorCallback() const { return error_cb_; }
-    void setReadCallback(ReadCallback read_cb);
-    void setWriteCallback(WriteCallback write_cb);
-    void setErrorCallback(ErrorCallback error_cb);
+    void setReadCallback(const ReadCallback &read_cb);
+    void setWriteCallback(const WriteCallback &write_cb);
+    void setErrorCallback(const ErrorCallback &error_cb);
 
     virtual int read(char *buffer, size_t size);
     virtual int write(const char *buffer, size_t size);

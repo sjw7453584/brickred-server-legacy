@@ -22,7 +22,7 @@ public:
     void loop();
     void quit();
 
-    TimerId startTimer(int timeout_ms, TimerCallback timer_cb,
+    TimerId startTimer(int timeout_ms, const TimerCallback &timer_cb,
                        int call_times = -1);
     void stopTimer(TimerId timer_id);
 

@@ -34,7 +34,7 @@ public:
     typedef TimerHeap::TimerCallback TimerCallback;
 
     explicit Timer(TimerId id, const Timestamp &timestamp, int timeout,
-                   TimerCallback timer_cb, int call_times);
+                   const TimerCallback &timer_cb, int call_times);
     ~Timer() {}
 
     TimerId getId() const { return id_; }
@@ -58,7 +58,7 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 Timer::Timer(TimerId id, const Timestamp &timestamp, int timeout,
-             TimerCallback timer_cb, int call_times) :
+             const TimerCallback &timer_cb, int call_times) :
     id_(id), timestamp_(timestamp), timeout_(timeout),
     timer_cb_(timer_cb), call_times_(call_times),
     heap_pos_(-1)
@@ -78,7 +78,7 @@ public:
 
     int64_t getNextTimeoutMillisecond(const Timestamp &now) const;
     TimerId addTimer(const Timestamp &now, int timeout_ms,
-                     TimerCallback timer_cb,
+                     const TimerCallback &timer_cb,
                      int call_times = -1);
     void removeTimer(TimerId timer_id);
     void checkTimeout(const Timestamp &now);
@@ -119,7 +119,7 @@ int64_t TimerHeap::Impl::getNextTimeoutMillisecond(const Timestamp &now) const
 }
 
 TimerHeap::Impl::TimerId TimerHeap::Impl::addTimer(const Timestamp &now,
-    int timeout_ms, TimerCallback timer_cb, int call_times)
+    int timeout_ms, const TimerCallback &timer_cb, int call_times)
 {
     TimerId timer_id = timer_id_allocator_.getId();
     UniquePtr<Timer> timer(new Timer(timer_id,
@@ -288,7 +288,7 @@ int64_t TimerHeap::getNextTimeoutMillisecond(const Timestamp &now) const
 }
 
 TimerHeap::TimerId TimerHeap::addTimer(const Timestamp &now,
-    int timeout_ms, TimerCallback timer_cb, int call_times)
+    int timeout_ms, const TimerCallback &timer_cb, int call_times)
 {
     return pimpl_->addTimer(now, timeout_ms, timer_cb, call_times);
 }
