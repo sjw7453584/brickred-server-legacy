@@ -120,7 +120,7 @@ public:
     bool getPeerAddress(SocketId socket_id, SocketAddress *addr) const;
 
     bool sendMessage(SocketId socket_id, const char *buffer, size_t size,
-                     SendCompleteCallback send_complete_cb);
+                     const SendCompleteCallback &send_complete_cb);
     bool sendMessageThenClose(SocketId socket_id,
                               const char *buffer, size_t size);
     void closeSocket(SocketId socket_id);
@@ -660,8 +660,8 @@ bool TcpService::Impl::getPeerAddress(SocketId socket_id,
     return socket->getPeerAddress(addr);
 }
 
-bool TcpService::Impl::sendMessage(SocketId socket_id,
-    const char *buffer, size_t size, SendCompleteCallback send_complete_cb)
+bool TcpService::Impl::sendMessage(SocketId socket_id, const char *buffer,
+    size_t size, const SendCompleteCallback &send_complete_cb)
 {
     TcpSocketMap::iterator iter = sockets_.find(socket_id);
     if (sockets_.end() == iter) {
@@ -725,7 +725,7 @@ bool TcpService::Impl::sendMessageThenClose(SocketId socket_id,
     const char *buffer, size_t size)
 {
     return sendMessage(socket_id, buffer, size, BRICKRED_BIND_MEM_FUNC(
-            &TcpService::Impl::sendCompleteCloseCallback, this));
+                       &TcpService::Impl::sendCompleteCloseCallback, this));
 }
 
 void TcpService::Impl::closeSocket(SocketId socket_id)
@@ -883,8 +883,8 @@ bool TcpService::getPeerAddress(SocketId socket_id, SocketAddress *addr) const
     return pimpl_->getPeerAddress(socket_id, addr);
 }
 
-bool TcpService::sendMessage(SocketId socket_id,
-    const char *buffer, size_t size, SendCompleteCallback send_complete_cb)
+bool TcpService::sendMessage(SocketId socket_id, const char *buffer,
+    size_t size, const SendCompleteCallback &send_complete_cb)
 {
     return pimpl_->sendMessage(socket_id, buffer, size, send_complete_cb);
 }

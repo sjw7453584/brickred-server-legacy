@@ -50,7 +50,7 @@ public:
     bool getPeerAddress(SocketId socket_id, SocketAddress *addr) const;
 
     bool sendMessage(SocketId socket_id, const char *buffer, size_t size,
-                     SendCompleteCallback send_complete_cb = NullFunction());
+        const SendCompleteCallback &send_complete_cb = NullFunction());
     bool sendMessageThenClose(SocketId socket_id,
                               const char *buffer, size_t size);
     void closeSocket(SocketId socket_id);
