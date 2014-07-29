@@ -44,4 +44,3 @@ install:
 	@cp src/brickred/codec/*.h $(BR_INSTALL_PREFIX)/include/brickred/codec
 	@mkdir -p $(BR_INSTALL_PREFIX)/lib
 	@cp build/libbrickredcore.a $(BR_INSTALL_PREFIX)/lib
-

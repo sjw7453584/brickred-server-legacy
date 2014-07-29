@@ -7,4 +7,3 @@ DEPFILE = build/libbrickredcore.a build/libbrtest.a
 BUILD_DIR = build
 
 include mak/main.mak
-

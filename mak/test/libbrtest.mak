@@ -5,4 +5,3 @@ INCLUDE = -Isrc
 BUILD_DIR = build
 
 include mak/main.mak
-
