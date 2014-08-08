@@ -35,6 +35,8 @@ BUILD_DIR = build
 
 include mak/main.mak
 
+.PHONY: install
+
 install:
 	@mkdir -p $(BR_INSTALL_PREFIX)/include/brickred
 	@mkdir -p $(BR_INSTALL_PREFIX)/include/brickred/protocol
