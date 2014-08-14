@@ -140,7 +140,7 @@ TimerHeap::Impl::TimerId TimerHeap::Impl::addTimer(const Timestamp &now,
     timers_.insert(std::make_pair(timer_id, timer.get()));
     Timer *timer_raw = timer.release();
 
-    // insert into timer mini heap
+    // insert into timer min heap
     minHeapInsert(timer_raw);
 
     return timer_id;
@@ -155,7 +155,7 @@ void TimerHeap::Impl::removeTimer(TimerId timer_id)
 
     Timer *timer = iter->second;
 
-    // remove from timer mini heap
+    // remove from timer min heap
     minHeapErase(timer);
 
     // remove from timer map
@@ -178,7 +178,7 @@ void TimerHeap::Impl::checkTimeout(const Timestamp &now)
         TimerId timer_id = timer->getId();
         TimerCallback timer_cb = timer->getCallback();
 
-        // remove from timer mini heap
+        // remove from timer min heap
         minHeapErase(timer);
 
         if (timer->getCallTimes() - 1 == 0) {
@@ -188,7 +188,7 @@ void TimerHeap::Impl::checkTimeout(const Timestamp &now)
         } else {
             timer->decCallTimes();
             timer->getTimestamp() += timer->getTimeout();
-            // insert into timer mini heap again
+            // insert into timer min heap again
             minHeapInsert(timer);
         }
 
