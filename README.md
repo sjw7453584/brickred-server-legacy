@@ -39,12 +39,13 @@ if you want build test programmes add option:
 ```
 $ config.sh --prefix=<prefix> --build-test
 ```
+after compile you can find them in bin dir
+
 if you want build eveything add option:
 ```
 $ config.sh --prefix=<prefix> --build-all
 ```
 
-after compile you can find them in bin dir
 
 Example
 -------
