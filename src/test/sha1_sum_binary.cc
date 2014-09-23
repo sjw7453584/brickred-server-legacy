@@ -11,13 +11,13 @@ int main(int argc, char *argv[])
     if (1 == argc) {
         fp = stdin;
     } else if (2 == argc) {
-        fp = fopen(argv[1], "rb");
+        fp = ::fopen(argv[1], "rb");
         if (NULL == fp) {
-            fprintf(stderr, "can not open file %s\n", argv[1]);
+            ::fprintf(stderr, "can not open file %s\n", argv[1]);
             return -1;
         }
     } else {
-        fprintf(stderr, "usage: %s <file>\n", argv[0]);
+        ::fprintf(stderr, "usage: %s <file>\n", argv[0]);
         return -1;
     }
 
@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
     char buffer[512];
 
     for (;;) {
-        size_t count = fread(buffer, 1, sizeof(buffer), fp);
+        size_t count = ::fread(buffer, 1, sizeof(buffer), fp);
         if (count > 0) {
             ctx.update(buffer, count);
         }
@@ -34,11 +34,11 @@ int main(int argc, char *argv[])
         }
     }
 
-    fclose(fp);
+    ::fclose(fp);
 
     char hash[20];
     ctx.digest(hash);
-    fwrite(hash, sizeof(hash), 1, stdout);
+    ::fwrite(hash, sizeof(hash), 1, stdout);
 
     return 0;
 }

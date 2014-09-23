@@ -119,11 +119,11 @@ private:
             uint16_t port_end;
 
             if (split_2.size() == 1) {
-                port_start = port_end = atoi(split_2[0].c_str());
+                port_start = port_end = ::atoi(split_2[0].c_str());
 
             } else if (split_2.size() == 2) {
-                port_start = atoi(split_2[0].c_str());
-                port_end = atoi(split_2[1].c_str());
+                port_start = ::atoi(split_2[0].c_str());
+                port_end = ::atoi(split_2[1].c_str());
 
             } else {
                 return false;
@@ -236,12 +236,12 @@ public:
     {
         for (OpenPortsMap::const_iterator iter = open_ports_.begin();
              iter != open_ports_.end(); ++iter) {
-            printf("%s: ", iter->first.c_str());
+            ::printf("%s: ", iter->first.c_str());
             const PortVector &ports = iter->second;
             for (size_t i = 0; i < ports.size(); ++i) {
-                printf("%d ", ports[i]);
+                ::printf("%d ", ports[i]);
             }
-            printf("\n");
+            ::printf("\n");
         }
     }
 
@@ -348,9 +348,9 @@ private:
 
 static void printUsage(const char *progname)
 {
-    fprintf(stderr, "usage: %s <ipv4_addr_range> \n"
-            "[-p <port_range>] [-n <max_conn_count>] [-t <timeout>]\n",
-            progname);
+    ::fprintf(stderr, "usage: %s <ipv4_addr_range> \n"
+              "[-p <port_range>] [-n <max_conn_count>] [-t <timeout>]\n",
+              progname);
 }
 
 int main(int argc, char *argv[])
@@ -373,10 +373,10 @@ int main(int argc, char *argv[])
         port_range = options.getParameter("p");
     }
     if (options.hasOption("n")) {
-        max_conn_count = atoi(options.getParameter("n").c_str());
+        max_conn_count = ::atoi(options.getParameter("n").c_str());
     }
     if (options.hasOption("t")) {
-        timeout = atoi(options.getParameter("t").c_str());
+        timeout = ::atoi(options.getParameter("t").c_str());
     }
     if (options.getLeftArguments().size() != 1) {
         printUsage(argv[0]);

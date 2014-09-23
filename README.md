@@ -26,14 +26,23 @@ compatiable with c++03
 Compile
 -------
 you need to install gmake and g++, then just:
+```
+$ config.sh --prefix=<prefix>
+$ make && make install
+```
 
-    $ config.sh --prefix=<prefix>
-    $ make && make install
-
-if you want build test programmes:
-
-    $ config.sh --prefix=<prefix> --build-test
-    $ make
+if you want build lbrickredunix library add option:
+```
+$ config.sh --prefix=<prefix> --build-unix
+```
+if you want build test programmes add option:
+```
+$ config.sh --prefix=<prefix> --build-test
+```
+if you want build eveything add option:
+```
+$ config.sh --prefix=<prefix> --build-all
+```
 
 after compile you can find them in bin dir
 

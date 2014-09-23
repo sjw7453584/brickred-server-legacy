@@ -43,7 +43,8 @@ public:
     {
         socket_id_ = tcp_service_.connect(addr);
         if (-1 == socket_id_) {
-            printf("[error] socket connect failed: %s\n", strerror(errno));
+            ::fprintf(stderr, "[error] socket connect failed: %s\n",
+                     ::strerror(errno));
             return false;
         }
 
@@ -82,25 +83,25 @@ public:
 
     void printHttpResponse(const HttpResponse &response)
     {
-        printf("[recv http response] %d %s\n",
-               response.getStatusCode(),
-               response.getReasonPhrase().c_str());
+        ::printf("[recv http response] %d %s\n",
+                 response.getStatusCode(),
+                 response.getReasonPhrase().c_str());
 
         // print header
-        printf("--- header ---\n");
+        ::printf("--- header ---\n");
         for (HttpMessage::HeaderMap::const_iterator iter =
                  response.getHeaders().begin();
              iter != response.getHeaders().end(); ++iter) {
-            printf("    %s: %s\n",
-                   iter->first.c_str(), iter->second.c_str());
+            ::printf("    %s: %s\n",
+                     iter->first.c_str(), iter->second.c_str());
         }
         // print body
-        printf("\n--- body ---\n\n");
+        ::printf("\n--- body ---\n\n");
         if (g_opt_print_hex) {
             test::hexdump(response.getBody().c_str(),
                           response.getBody().size());
         } else {
-            printf("%s\n", response.getBody().c_str());
+            ::printf("%s\n", response.getBody().c_str());
         }
     }
 
@@ -113,13 +114,13 @@ public:
             return;
 
         } else if (HttpProtocol::RetCode::ERROR == ret) {
-            printf("[error] recieve Message failed\n");
+            ::printf("[error] recieve Message failed\n");
             quit();
 
         } else if (HttpProtocol::RetCode::MESSAGE_READY == ret) {
             HttpResponse response;
             if (protocol_.retrieveResponse(&response) == false) {
-                printf("[error] retrieve response failed\n");
+                ::printf("[error] retrieve response failed\n");
                 quit();
             }
             printHttpResponse(response);
@@ -133,7 +134,7 @@ public:
     void onPeerClose(TcpService *service,
                      TcpService::SocketId socket_id)
     {
-        printf("[peer close] %lx\n", socket_id);
+        ::printf("[peer close] %lx\n", socket_id);
         quit();
     }
 
@@ -141,7 +142,7 @@ public:
                  TcpService::SocketId socket_id,
                  int error)
     {
-        printf("[error] %lx: %s\n", socket_id, strerror(error));
+        ::printf("[error] %lx: %s\n", socket_id, ::strerror(error));
         quit();
     }
 
@@ -160,12 +161,12 @@ private:
 
 static void printUsage(const char *progname)
 {
-    fprintf(stderr, "usage: %s <ip>\n"
-            "[-p <port>] [-r <request_uri>]\n"
-            "[-H(hex_output)]\n"
-            "[--user-agent <user_agent>]\n"
-            "[--host <host>]\n",
-            progname);
+    ::fprintf(stderr, "usage: %s <ip>\n"
+              "[-p <port>] [-r <request_uri>]\n"
+              "[-H(hex_output)]\n"
+              "[--user-agent <user_agent>]\n"
+              "[--host <host>]\n",
+              progname);
 }
 
 int main(int argc, char *argv[])
@@ -187,7 +188,7 @@ int main(int argc, char *argv[])
         return -1;
     }
     if (options.hasOption("p")) {
-        port = atoi(options.getParameter("p").c_str());
+        port = ::atoi(options.getParameter("p").c_str());
     }
     if (options.hasOption("r")) {
         request_uri = options.getParameter("r");

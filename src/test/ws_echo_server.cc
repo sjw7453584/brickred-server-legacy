@@ -41,7 +41,8 @@ public:
     bool run(const SocketAddress &addr)
     {
         if (tcp_service_.listen(addr) < 0) {
-            fprintf(stderr, "socket listen failed: %s\n", strerror(errno));
+            ::fprintf(stderr, "socket listen failed: %s\n",
+                      ::strerror(errno));
             return false;
         }
 
@@ -55,8 +56,8 @@ public:
                          TcpService::SocketId socket_id)
     {
         static int conn_num = 0;
-        printf("[new connection][%d] %lx from %lx\n",
-               ++conn_num, socket_id, from_socket_id);
+        ::printf("[new connection][%d] %lx from %lx\n",
+                 ++conn_num, socket_id, from_socket_id);
 
         UniquePtr<Context> context(new Context());
         context->protocol_.setHandshakeHeader("Date", "");
@@ -86,24 +87,24 @@ public:
                 return;
 
             } else if (WebSocketProtocol::RetCode::ERROR == ret) {
-                printf("[error] %lx: recieve message failed\n", socket_id);
+                ::printf("[error] %lx: recieve message failed\n", socket_id);
                 service->closeSocket(socket_id);
                 break;
 
             } else if (WebSocketProtocol::RetCode::PEER_CLOSED == ret) {
-                printf("[ws peer close] %lx\n", socket_id);
+                ::printf("[ws peer close] %lx\n", socket_id);
                 service->closeSocket(socket_id);
                 break;
 
             } else if (WebSocketProtocol::RetCode::MESSAGE_READY == ret) {
                 DynamicBuffer message;
                 if (context->protocol_.retrieveMessage(&message) == false) {
-                    printf("[error] %lx: retrieve message failed\n",
-                           socket_id);
+                    ::printf("[error] %lx: retrieve message failed\n",
+                             socket_id);
                     service->closeSocket(socket_id);
                     break;
                 }
-                printf("[recieve message] %lx: %zd bytes\n",
+                ::printf("[recieve message] %lx: %zd bytes\n",
                        socket_id, message.readableBytes());
                 context->protocol_.sendMessage(message.readBegin(),
                                                message.readableBytes());
@@ -114,7 +115,7 @@ public:
     void onPeerClose(TcpService *service,
                      TcpService::SocketId socket_id)
     {
-        printf("[peer close] %lx\n", socket_id);
+        ::printf("[peer close] %lx\n", socket_id);
         service->closeSocket(socket_id);
     }
 
@@ -122,7 +123,7 @@ public:
                  TcpService::SocketId socket_id,
                  int error)
     {
-        printf("[error] %lx: %s\n", socket_id, strerror(error));
+        ::printf("[error] %lx: %s\n", socket_id, ::strerror(error));
         service->closeSocket(socket_id);
     }
 
@@ -134,12 +135,14 @@ private:
 int main(int argc, char *argv[])
 {
     if (argc < 3) {
-        fprintf(stderr, "usage: %s <ip> <port>\n", argv[0]);
+        ::fprintf(stderr, "usage: %s <ip> <port>\n", argv[0]);
         return -1;
     }
 
     WsEchoServer server;
-    if (server.run(SocketAddress(argv[1], atoi(argv[2]))) == false) {
+    if (server.run(SocketAddress(argv[1], ::atoi(argv[2]))) == false) {
         return -1;
     }
+
+    return 0;
 }

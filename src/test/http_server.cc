@@ -45,7 +45,8 @@ public:
     bool run(const SocketAddress &addr)
     {
         if (tcp_service_.listen(addr) < 0) {
-            fprintf(stderr, "socket listen failed: %s\n", strerror(errno));
+            ::fprintf(stderr, "socket listen failed: %s\n",
+                      ::strerror(errno));
             return false;
         }
 
@@ -59,8 +60,8 @@ public:
                          TcpService::SocketId socket_id)
     {
         static int conn_num = 0;
-        printf("[new connection][%d] %lx from %lx\n",
-               ++conn_num, socket_id, from_socket_id);
+        ::printf("[new connection][%d] %lx from %lx\n",
+                 ++conn_num, socket_id, from_socket_id);
 
         UniquePtr<Context> context(new Context());
         if (service->setContext(socket_id, context.get()) == false) {
@@ -88,15 +89,15 @@ public:
             } else if (HttpProtocol::RetCode::MESSAGE_READY == ret) {
                 HttpRequest request;
                 if (context->protocol_.retrieveRequest(&request) == false) {
-                    printf("[error] %lx: retrieve request failed\n",
-                           socket_id);
+                    ::printf("[error] %lx: retrieve request failed\n",
+                             socket_id);
                     tcp_service_.sendMessageThenClose(socket_id,
                         s_http_400, sizeof(s_http_400) - 1);
                     return;
                 }
 
-                printf("[recv http request] %lx: %s\n",
-                       socket_id, request.getRequestUri().c_str());
+                ::printf("[recv http request] %lx: %s\n",
+                         socket_id, request.getRequestUri().c_str());
                 printHttpRequest(request);
 
                 if (request.isConnectionKeepAlive()) {
@@ -108,7 +109,7 @@ public:
                 }
 
             } else {
-                printf("[error] %lx: recieve message failed\n", socket_id);
+                ::printf("[error] %lx: recieve message failed\n", socket_id);
                 tcp_service_.sendMessageThenClose(socket_id,
                     s_http_400, sizeof(s_http_400) - 1);
                 return;
@@ -119,22 +120,22 @@ public:
     void printHttpRequest(const HttpRequest &request)
     {
         // print header
-        printf("  header:\n");
+        ::printf("  header:\n");
         for (HttpMessage::HeaderMap::const_iterator iter =
                  request.getHeaders().begin();
              iter != request.getHeaders().end(); ++iter) {
-            printf("    %s: %s\n",
-                   iter->first.c_str(), iter->second.c_str());
+            ::printf("    %s: %s\n",
+                     iter->first.c_str(), iter->second.c_str());
         }
         // print body
-        printf("  body:\n");
+        ::printf("  body:\n");
         test::hexdump(request.getBody().c_str(), request.getBody().size());
     }
 
     void onPeerClose(TcpService *service,
                            TcpService::SocketId socket_id)
     {
-        printf("[peer close] %lx\n", socket_id);
+        ::printf("[peer close] %lx\n", socket_id);
         service->closeSocket(socket_id);
     }
 
@@ -142,7 +143,7 @@ public:
                  TcpService::SocketId socket_id,
                  int error)
     {
-        printf("[error] %lx: %s\n", socket_id, strerror(error));
+        ::printf("[error] %lx: %s\n", socket_id, ::strerror(error));
         service->closeSocket(socket_id);
     }
 
@@ -154,12 +155,14 @@ private:
 int main(int argc, char *argv[])
 {
     if (argc < 3) {
-        fprintf(stderr, "usage: %s <ip> <port>\n", argv[0]);
+        ::fprintf(stderr, "usage: %s <ip> <port>\n", argv[0]);
         return -1;
     }
 
     HttpServer server;
-    if (server.run(SocketAddress(argv[1], atoi(argv[2]))) == false) {
+    if (server.run(SocketAddress(argv[1], ::atoi(argv[2]))) == false) {
         return -1;
     }
+
+    return 0;
 }

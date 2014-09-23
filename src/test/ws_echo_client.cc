@@ -36,7 +36,8 @@ public:
     {
         socket_id_ = tcp_service_.connect(addr);
         if (-1 == socket_id_) {
-            printf("[error] socket connect failed: %s\n", strerror(errno));
+            ::printf("[error] socket connect failed: %s\n",
+                     ::strerror(errno));
             return false;
         }
 
@@ -65,33 +66,33 @@ public:
                 return;
 
             } else if (WebSocketProtocol::RetCode::ERROR == ret) {
-                printf("[error] recieve Message failed\n");
+                ::printf("[error] recieve Message failed\n");
                 quit();
                 break;
 
             } else if (WebSocketProtocol::RetCode::PEER_CLOSED == ret) {
-                printf("[ws peer close]\n");
+                ::printf("[ws peer close]\n");
                 quit();
                 break;
 
             } else if (WebSocketProtocol::RetCode::MESSAGE_READY == ret) {
                 DynamicBuffer message;
                 if (protocol_.retrieveMessage(&message) == false) {
-                    printf("[error] retrieve message failed\n");
+                    ::printf("[error] retrieve message failed\n");
                     quit();
                     break;
                 }
-                printf("[recieve message] %zd bytes\n",
-                       message.readableBytes());
+                ::printf("[recieve message] %zd bytes\n",
+                         message.readableBytes());
                 test::hexdump(message.readBegin(), message.readableBytes());
                 protocol_.sendPingFrame();
                 protocol_.sendCloseFrame();
 
             } else if (WebSocketProtocol::RetCode::PONG_FRAME == ret) {
-                printf("[recieve pong]\n");
+                ::printf("[recieve pong]\n");
 
             } else if (WebSocketProtocol::RetCode::PING_FRAME == ret) {
-                printf("[recieve ping]\n");
+                ::printf("[recieve ping]\n");
             }
         }
     }
@@ -99,7 +100,7 @@ public:
     void onPeerClose(TcpService *service,
                      TcpService::SocketId socket_id)
     {
-        printf("[peer close] %lx\n", socket_id);
+        ::printf("[peer close] %lx\n", socket_id);
         quit();
     }
 
@@ -107,7 +108,7 @@ public:
                  TcpService::SocketId socket_id,
                  int error)
     {
-        printf("[error] %lx: %s\n", socket_id, strerror(error));
+        ::printf("[error] %lx: %s\n", socket_id, ::strerror(error));
         quit();
     }
 
@@ -129,14 +130,14 @@ private:
 int main(int argc, char *argv[])
 {
     if (argc < 4) {
-        fprintf(stderr, "usage: %s <host> <port> <message>\n", argv[0]);
+        ::fprintf(stderr, "usage: %s <host> <port> <message>\n", argv[0]);
         return -1;
     }
 
     std::vector<SocketAddress> addr_list;
     SocketAddress::getAddressByDomain(argv[1], &addr_list);
     if (addr_list.empty()) {
-        fprintf(stderr, "dns query failed\n");
+        ::fprintf(stderr, "dns query failed\n");
         return -1;
     }
 

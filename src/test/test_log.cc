@@ -57,14 +57,16 @@ int main(void)
         std::cout << "***log using fwrite directly***" << std::endl;
         TestTimer timer;
 
-        FILE *fp = fopen("test.log", "a");
+        FILE *fp = ::fopen("test.log", "a");
         if (NULL == fp) {
             return false;
         }
 
         for (int i = 0; i < 1000000; ++i) {
-            fwrite(log_msg, sizeof(log_msg) - 1, 1, fp);
+            ::fwrite(log_msg, sizeof(log_msg) - 1, 1, fp);
         }
+
+        ::fclose(fp);
     }
 
     return 0;

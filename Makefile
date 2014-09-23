@@ -11,6 +11,10 @@ endef
 debug release profile clean:
 	@$(call ECHO, "[build libbrickredcore]")
 	@$(MAKE) -f mak/libbrickredcore.mak $@
+ifeq ($(BR_BUILD_UNIX), yes)
+	@$(call ECHO, "[build libbrickredunix]")
+	@$(MAKE) -f mak/libbrickredunix.mak $@
+endif
 ifeq ($(BR_BUILD_TEST), yes)
 	@$(call ECHO, "[build libbrtest]")
 	@$(MAKE) -f mak/test/libbrtest.mak $@
@@ -63,3 +67,7 @@ endif
 install:
 	@$(call ECHO, "[install libbrickredcore]")
 	@$(MAKE) -f mak/libbrickredcore.mak $@
+ifeq ($(BR_BUILD_UNIX), yes)
+	@$(call ECHO, "[install libbrickredunix]")
+	@$(MAKE) -f mak/libbrickredunix.mak $@
+endif

@@ -13,21 +13,21 @@ public:
     int timeout_ms_;
 
     void onTimeout(int64_t timer_id) {
-        printf("%lu:%d\n", timer_id, timeout_ms_);
+        ::printf("%lu:%d\n", timer_id, timeout_ms_);
     }
 };
 
 int main(int argc, char *argv[])
 {
     if (argc < 2) {
-        fprintf(stderr, "usage: %s <timer_num>\n", argv[0]);
+        ::fprintf(stderr, "usage: %s <timer_num>\n", argv[0]);
         return -1;
     }
 
     srand(time(NULL));
 
     IOService io_service;
-    int timer_num = atoi(argv[1]);
+    int timer_num = ::atoi(argv[1]);
 
     TimerHandler *timer_handlers = new TimerHandler[timer_num];
 
@@ -41,4 +41,6 @@ int main(int argc, char *argv[])
     io_service.loop();
 
     delete[] timer_handlers;
+
+    return 0;
 }

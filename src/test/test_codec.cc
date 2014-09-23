@@ -14,4 +14,6 @@ int main(void)
     std::cout << codec::base64Decode("MTEx") << std::endl;
     std::cout << codec::base64Decode("MTE=") << std::endl;
     std::cout << codec::base64Decode("MQ==") << std::endl;
+
+    return 0;
 }

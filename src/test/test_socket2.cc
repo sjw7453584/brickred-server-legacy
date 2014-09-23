@@ -22,7 +22,7 @@ void onNewConnection(TcpService *service,
                      TcpService::SocketId from_socket_id,
                      TcpService::SocketId socket_id)
 {
-    printf("[new connection] %lx from %lx\n", socket_id, from_socket_id);
+    ::printf("[new connection] %lx from %lx\n", socket_id, from_socket_id);
 }
 
 void onRecvMessage(TcpService *service,
@@ -31,13 +31,13 @@ void onRecvMessage(TcpService *service,
 {
     std::string buffer_string(buffer->readBegin(), buffer->readableBytes());
     buffer->read(buffer->readableBytes());
-    printf("[receive data] %lx: %s\n", socket_id, buffer_string.c_str());
+    ::printf("[receive data] %lx: %s\n", socket_id, buffer_string.c_str());
 }
 
 void onPeerClose(TcpService *service,
                  TcpService::SocketId socket_id)
 {
-    printf("[peer close] %lx\n", socket_id);
+    ::printf("[peer close] %lx\n", socket_id);
     service->closeSocket(socket_id);
 }
 
@@ -45,7 +45,7 @@ void onError(TcpService *service,
              TcpService::SocketId socket_id,
              int error)
 {
-    printf("[error] %lx: %s\n", socket_id, strerror(error));
+    ::printf("[error] %lx: %s\n", socket_id, ::strerror(error));
 }
 
 void server_func()
@@ -61,7 +61,7 @@ void server_func()
     net_service.setErrorCallback(
         BRICKRED_BIND_FREE_FUNC(&onError));
     if (net_service.listen(SocketAddress("127.0.0.1", 2000)) < 0) {
-        fprintf(stderr, "socket listen failed\n");
+        ::fprintf(stderr, "socket listen failed\n");
         exit(-1);
     }
 
@@ -97,8 +97,8 @@ void client_func()
     bool complete = false;
     if (net_service.asyncConnect(SocketAddress("127.0.0.1", 2000),
                                  &complete) < 0) {
-        fprintf(stderr, "socket async connect failed\n");
-        exit(-0);
+        ::fprintf(stderr, "socket async connect failed\n");
+        exit(-1);
     }
 
     io_service.loop();
@@ -113,4 +113,6 @@ int main(void)
     client.start(BRICKRED_BIND_FREE_FUNC(&client_func));
     server.join();
     client.join();
+
+    return 0;
 }

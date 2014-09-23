@@ -66,4 +66,6 @@ int main(void)
     client.start(BRICKRED_BIND_FREE_FUNC(&client_func));
     server.join();
     client.join();
+
+    return 0;
 }

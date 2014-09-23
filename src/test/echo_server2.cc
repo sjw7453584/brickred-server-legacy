@@ -92,7 +92,8 @@ NetworkThread::~NetworkThread()
 bool NetworkThread::start(const SocketAddress &addr)
 {
     if (tcp_service_.listen(addr) < 0) {
-        fprintf(stderr, "socket listen failed: %s\n", strerror(errno));
+        ::fprintf(stderr, "socket listen failed: %s\n",
+                  ::strerror(errno));
         return false;
     }
 
@@ -122,8 +123,8 @@ void NetworkThread::onNetNewConnection(TcpService *service,
                                        TcpService::SocketId socket_id)
 {
     static int conn_num = 0;
-    printf("[new connection][%d] %lx from %lx\n",
-           ++conn_num, socket_id, from_socket_id);
+    ::printf("[new connection][%d] %lx from %lx\n",
+             ++conn_num, socket_id, from_socket_id);
 }
 
 void NetworkThread::onNetRecvMessage(TcpService *service,
@@ -143,7 +144,7 @@ void NetworkThread::onNetRecvMessage(TcpService *service,
 void NetworkThread::onNetPeerClose(TcpService *service,
                                    TcpService::SocketId socket_id)
 {
-    printf("[peer close] %lx\n", socket_id);
+    ::printf("[peer close] %lx\n", socket_id);
     service->closeSocket(socket_id);
 }
 
@@ -151,7 +152,7 @@ void NetworkThread::onNetError(TcpService *service,
                                TcpService::SocketId socket_id,
                                int error)
 {
-    printf("[error] %lx: %s\n", socket_id, strerror(error));
+    ::printf("[error] %lx: %s\n", socket_id, ::strerror(error));
     service->closeSocket(socket_id);
 }
 
@@ -208,16 +209,18 @@ void LogicThread::onProcessMessage(MessageQueue<Message> *queue)
 int main(int argc, char *argv[])
 {
     if (argc < 3) {
-        fprintf(stderr, "usage: %s <ip> <port>\n", argv[0]);
+        ::fprintf(stderr, "usage: %s <ip> <port>\n", argv[0]);
         return -1;
     }
 
     if (NetworkThread::getInstance()->start(
-            SocketAddress(argv[1], atoi(argv[2]))) == false) {
+            SocketAddress(argv[1], ::atoi(argv[2]))) == false) {
         return -1;
     }
     LogicThread::getInstance()->start();
 
     LogicThread::getInstance()->join();
     NetworkThread::getInstance()->join();
+
+    return 0;
 }
