@@ -106,6 +106,7 @@ public:
                 } else {
                     tcp_service_.sendMessageThenClose(socket_id,
                         s_http_200, sizeof(s_http_200) - 1);
+                    return;
                 }
 
             } else {
