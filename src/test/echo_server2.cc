@@ -197,6 +197,7 @@ void LogicThread::run()
 {
     io_service_.loop();
 }
+
 void LogicThread::onProcessMessage(MessageQueue<Message> *queue)
 {
     Message message;
