@@ -45,4 +45,4 @@ install:
 	@cp src/brickred/protocol/*.h $(BR_INSTALL_PREFIX)/include/brickred/protocol
 	@cp src/brickred/codec/*.h $(BR_INSTALL_PREFIX)/include/brickred/codec
 	@mkdir -p $(BR_INSTALL_PREFIX)/lib
-	@cp build/libbrickredcore.a $(BR_INSTALL_PREFIX)/lib
+	@cp $(FINAL_TARGET) $(BR_INSTALL_PREFIX)/lib

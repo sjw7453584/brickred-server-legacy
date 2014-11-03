@@ -14,4 +14,4 @@ install:
 	@mkdir -p $(BR_INSTALL_PREFIX)/include/brickred/unix
 	@cp src/brickred/unix/*.h $(BR_INSTALL_PREFIX)/include/brickred/unix
 	@mkdir -p $(BR_INSTALL_PREFIX)/lib
-	@cp build/libbrickredunix.a $(BR_INSTALL_PREFIX)/lib
+	@cp $(FINAL_TARGET) $(BR_INSTALL_PREFIX)/lib
