@@ -30,7 +30,7 @@ SRCS = src/brickred/base_logger.cc \
        src/brickred/protocol/web_socket_protocol.cc
 LINK_TYPE = static
 INCLUDE = -Isrc
-CPP_FLAG = $(BRCORE_CPP_FLAG)
+CPP_FLAG = $(BR_CORE_CPP_FLAG)
 BUILD_DIR = build
 
 include mak/main.mak

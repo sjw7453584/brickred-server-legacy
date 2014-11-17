@@ -19,7 +19,7 @@ private:                                       \
     _T(const _T &);                            \
     _T &operator=(const _T &);                 \
 
-#define BRICKRED_SINGLETON2(_T)                \
+#define BRICKRED_PRECREATED_SINGLETON(_T)      \
 public:                                        \
     static _T *getInstance()                   \
     {                                          \

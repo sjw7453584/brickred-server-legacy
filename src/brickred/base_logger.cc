@@ -1,5 +1,3 @@
-#ifndef _BRICKRED_BUILD_DISABLE_BASE_LOG_
-
 #include <brickred/base_logger.h>
 
 #include <cstdio>
@@ -41,12 +39,12 @@ void BaseLogger::setLogFunc(LogFunc log_func)
 
 void BaseLogger::log(int level, const char *format, ...)
 {
+#ifdef BRICKRED_BUILD_ENABLE_BASE_LOG
     va_list args;
     va_start(args, format);
     log_func_(level, format, args);
     va_end(args);
+#endif
 }
 
 } // namespace brickred
-
-#endif // _BRICKRED_BUILD_DISABLE_BASE_LOG_

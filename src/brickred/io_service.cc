@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <unistd.h>
 
-#ifdef BRICKRED_DONT_HAVE_EPOLL_CREATE1
+#ifdef BRICKRED_BUILD_DONT_HAVE_EPOLL_CREATE1
 #include <fcntl.h>
 #endif
 
@@ -57,7 +57,7 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 IOService::Impl::Impl() : epoll_fd_(-1), events_(32)
 {
-#ifndef BRICKRED_DONT_HAVE_EPOLL_CREATE1
+#ifndef BRICKRED_BUILD_DONT_HAVE_EPOLL_CREATE1
     epoll_fd_ = epoll_create1(EPOLL_CLOEXEC);
     if (-1 == epoll_fd_) {
         throw SystemErrorException(

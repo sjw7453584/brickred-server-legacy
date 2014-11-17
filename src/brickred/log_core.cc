@@ -23,6 +23,7 @@ public:
     bool addSink(LogSink *sink, int level_filter);
     void log(int level, const char *filename, int line,
              const char *function, const char *format, va_list args);
+    void log(int level, const char *buffer, size_t size);
 
 private:
     LogFormatter formatter_;
@@ -81,6 +82,17 @@ void Logger::log(int level, const char *filename, int line,
     }
 }
 
+void Logger::log(int level, const char *buffer, size_t size)
+{
+    for (size_t i = 0; i < sinks_.size(); ++i) {
+        if (level < sink_level_filters_[i]) {
+            continue;
+        }
+
+        sinks_[i]->log(buffer, size);
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 class LogCore::Impl {
 public:
@@ -93,9 +105,11 @@ public:
     bool registerLogger(int logger_id, LogFormatter formatter);
     void removeLogger(int logger_id);
     bool addSink(int logger_id, LogSink *sink, int level_filter);
-    void log(int logger_id, int level, const char *filename,
-             int line, const char *function,
+    void log(int logger_id, int level,
+             const char *filename, int line, const char *function,
              const char *format, va_list args);
+    void log(int logger_id, int level,
+             const char *buffer, size_t size);
 
 private:
     LoggerVector loggers_;
@@ -111,6 +125,11 @@ LogCore::Impl::Impl() :
 
 LogCore::Impl::~Impl()
 {
+    for (size_t i = 0; i < loggers_.size(); ++i) {
+        if (loggers_[i] != NULL) {
+            delete loggers_[i];
+        }
+    }
 }
 
 bool LogCore::Impl::registerLogger(int logger_id, LogFormatter formatter)
@@ -166,6 +185,19 @@ void LogCore::Impl::log(int logger_id, int level, const char *filename,
     loggers_[logger_id]->log(level, filename, line, function, format, args);
 }
 
+void LogCore::Impl::log(int logger_id, int level,
+                        const char *buffer, size_t size)
+{
+    if (logger_id < 0 || logger_id >= MAX_LOGGER_COUNT) {
+        return;
+    }
+    if (NULL == loggers_[logger_id]) {
+        return;
+    }
+
+    loggers_[logger_id]->log(level, buffer, size);
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 LogCore::LogCore() :
     pimpl_(new Impl())
@@ -191,13 +223,20 @@ bool LogCore::addSink(int logger_id, LogSink *sink, int level_filter)
     return pimpl_->addSink(logger_id, sink, level_filter);
 }
 
-void LogCore::log(int logger_id, int level, const char *filename,
-                  int line, const char *function, const char *format, ...)
+void LogCore::log(int logger_id, int level,
+                  const char *filename, int line, const char *function,
+                  const char *format, ...)
 {
     va_list args;
     va_start(args, format);
     pimpl_->log(logger_id, level, filename, line, function, format, args);
     va_end(args);
+}
+
+void LogCore::log(int logger_id, int level,
+                  const char *buffer, size_t size)
+{
+    pimpl_->log(logger_id, level, buffer, size);
 }
 
 } // namespace brickred

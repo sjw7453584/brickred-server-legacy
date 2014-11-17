@@ -22,11 +22,17 @@ public:
     bool registerLogger(int logger_id, LogFormatter formatter = NULL);
     void removeLogger(int logger_id);
     bool addSink(int logger_id, LogSink *sink, int level_filter);
-    void log(int logger_id, int level, const char *filename,
-             int line, const char *function, const char *format, ...);
+
+    // log with formatter
+    void log(int logger_id, int level,
+             const char *filename, int line, const char *function,
+             const char *format, ...);
+    // raw log
+    void log(int logger_id, int level,
+             const char *buffer, size_t size);
 
 private:
-    BRICKRED_SINGLETON2(LogCore)
+    BRICKRED_PRECREATED_SINGLETON(LogCore)
     
     class Impl;
     UniquePtr<Impl> pimpl_;

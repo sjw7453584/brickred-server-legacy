@@ -8,6 +8,7 @@ usage()
     echo '--build-unix         build libbrickredunix'
     echo '--build-test         build test programmes'
     echo '--build-all          build all'
+    echo '--enable-baselog     enable base log'
     exit 1
 }
 
@@ -15,7 +16,14 @@ opt_prefix='/usr/local'
 opt_build_unix='no'
 opt_build_test='no'
 
-options=`getopt -o h -l help,prefix:,build-test,build-unix,build-all -- "$@"`
+options=`getopt -o h -l \
+help,\
+prefix:,\
+build-test,\
+build-unix,\
+build-all,\
+enable-baselog\
+ -- "$@"`
 eval set -- "$options"
 
 while [ $# -gt 0 ]
@@ -28,6 +36,9 @@ do
     --build-all)
         opt_build_unix=yes
         opt_build_test=yes
+        ;;
+    --enable-baselog)
+        core_cpp_flag=$core_cpp_flag' -DBRICKRED_BUILD_ENABLE_BASE_LOG'
         ;;
     --) shift; break;;
     *) usage;;
@@ -62,7 +73,7 @@ int main()
 ' | g++ -x c++ -o /dev/null - >/dev/null 2>&1
 if [ $? -ne 0 ]
 then
-    core_cpp_flag='-DBRICKRED_DONT_HAVE_EPOLL_CREATE1'
+    core_cpp_flag=$core_cpp_flag' -DBRICKRED_BUILD_DONT_HAVE_EPOLL_CREATE1'
 fi
 
 # output
