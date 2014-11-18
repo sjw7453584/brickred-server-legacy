@@ -44,6 +44,7 @@ bool TcpSocket::open(SocketAddress::Protocol::type protocol)
 
     if (setCloseOnExec() == false) {
         close();
+        return false;
     }
 
     return true;
