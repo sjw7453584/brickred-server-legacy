@@ -112,6 +112,7 @@ public:
     IOService *getIOService() const;
 
     SocketId listen(const SocketAddress &addr);
+    SocketId shareListen(const TcpSocket &shared_socket);
     SocketId connect(const SocketAddress &addr);
     SocketId asyncConnect(const SocketAddress &addr, bool *complete,
                           int timeout_ms);
@@ -578,6 +579,15 @@ TcpService::Impl::SocketId TcpService::Impl::listen(const SocketAddress &addr)
     return buildListenSocket(socket);
 }
 
+TcpService::Impl::SocketId TcpService::Impl::shareListen(
+    const TcpSocket &shared_socket)
+{
+    UniquePtr<TcpSocket> socket(new TcpSocket());
+    socket->setDescriptor(shared_socket.getDescriptor());
+
+    return buildListenSocket(socket);
+}
+
 TcpService::Impl::SocketId TcpService::Impl::connect(const SocketAddress &addr)
 {
     UniquePtr<TcpSocket> socket(new TcpSocket());
@@ -860,6 +870,11 @@ IOService *TcpService::getIOService() const
 TcpService::SocketId TcpService::listen(const SocketAddress &addr)
 {
     return pimpl_->listen(addr);
+}
+
+TcpService::SocketId TcpService::shareListen(const TcpSocket &shared_socket)
+{
+    return pimpl_->shareListen(shared_socket);
 }
 
 TcpService::SocketId TcpService::connect(const SocketAddress &addr)

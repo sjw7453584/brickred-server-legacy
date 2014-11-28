@@ -12,6 +12,7 @@ namespace brickred {
 
 class DynamicBuffer;
 class SocketAddress;
+class TcpSocket;
 class IOService;
 
 class TcpService {
@@ -42,6 +43,7 @@ public:
     IOService *getIOService() const;
 
     SocketId listen(const SocketAddress &addr);
+    SocketId shareListen(const TcpSocket &shared_socket);
     SocketId connect(const SocketAddress &addr);
     SocketId asyncConnect(const SocketAddress &addr, bool *complete,
                           int timeout_ms = -1);
