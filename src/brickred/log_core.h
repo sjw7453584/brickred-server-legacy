@@ -19,9 +19,16 @@ public:
         const char *format, va_list args
     );
 
-    bool registerLogger(int logger_id, LogFormatter formatter = NULL);
+    // call by LogCore constructor, default max logger count is 1
+    // if you need more loggers, you should call this function
+    // before call registerLogger()
+    void setMaxLoggerCount(int count = 1);
+
+    // logger_id must be in [0, max_logger_count)
+    bool registerLogger(int logger_id, LogFormatter formatter = NULL,
+                        int level_filter = -1);
     void removeLogger(int logger_id);
-    bool addSink(int logger_id, LogSink *sink, int level_filter);
+    bool addSink(int logger_id, LogSink *sink, int level_filter = -1);
 
     // log with formatter
     void log(int logger_id, int level,
@@ -30,6 +37,9 @@ public:
     // raw log
     void log(int logger_id, int level,
              const char *buffer, size_t size);
+
+    // change logger level filter
+    void setLevelFilter(int logger_id, int level_filter);
 
 private:
     BRICKRED_PRECREATED_SINGLETON(LogCore)

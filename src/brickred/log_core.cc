@@ -8,7 +8,6 @@
 
 namespace brickred {
 
-#define MAX_LOGGER_COUNT 8
 #define LOG_BUFFER_SIZE 4096
 
 class Logger {
@@ -17,22 +16,25 @@ public:
     typedef std::vector<LogSink *> LogSinkVector;
     typedef std::vector<int> LogLevelVector;
 
-    explicit Logger(LogFormatter formatter);
+    explicit Logger(LogFormatter formatter, int level_filter);
     ~Logger();
 
     bool addSink(LogSink *sink, int level_filter);
     void log(int level, const char *filename, int line,
              const char *function, const char *format, va_list args);
     void log(int level, const char *buffer, size_t size);
+    void setLevelFilter(int level_filter) { level_filter_ = level_filter; }
 
 private:
     LogFormatter formatter_;
+    int level_filter_;
     LogSinkVector sinks_;
     LogLevelVector sink_level_filters_;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-Logger::Logger(LogFormatter formatter) : formatter_(formatter)
+Logger::Logger(LogFormatter formatter, int level_filter) :
+    formatter_(formatter), level_filter_(level_filter)
 {
 }
 
@@ -57,6 +59,10 @@ bool Logger::addSink(LogSink *sink, int level_filter)
 void Logger::log(int level, const char *filename, int line,
                  const char *function, const char *format, va_list args)
 {
+    if (level < level_filter_) {
+        return;
+    }
+
     char buffer[LOG_BUFFER_SIZE];
     size_t count = 0;
     bool buffer_ready = false;
@@ -84,6 +90,10 @@ void Logger::log(int level, const char *filename, int line,
 
 void Logger::log(int level, const char *buffer, size_t size)
 {
+    if (level < level_filter_) {
+        return;
+    }
+
     for (size_t i = 0; i < sinks_.size(); ++i) {
         if (level < sink_level_filters_[i]) {
             continue;
@@ -102,14 +112,20 @@ public:
     Impl();
     ~Impl();
 
-    bool registerLogger(int logger_id, LogFormatter formatter);
+    void setMaxLoggerCount(int count);
+
+    bool registerLogger(int logger_id, LogFormatter formatter,
+                        int level_filter);
     void removeLogger(int logger_id);
     bool addSink(int logger_id, LogSink *sink, int level_filter);
+
     void log(int logger_id, int level,
              const char *filename, int line, const char *function,
              const char *format, va_list args);
     void log(int logger_id, int level,
              const char *buffer, size_t size);
+
+    void setLevelFilter(int logger_id, int level_filter);
 
 private:
     LoggerVector loggers_;
@@ -118,37 +134,49 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 BRICKRED_SINGLETON2_IMPL(LogCore)
 
-LogCore::Impl::Impl() :
-    loggers_(MAX_LOGGER_COUNT, NULL)
+LogCore::Impl::Impl()
 {
 }
 
 LogCore::Impl::~Impl()
 {
     for (size_t i = 0; i < loggers_.size(); ++i) {
-        if (loggers_[i] != NULL) {
-            delete loggers_[i];
-        }
+        delete loggers_[i];
     }
 }
 
-bool LogCore::Impl::registerLogger(int logger_id, LogFormatter formatter)
+void LogCore::Impl::setMaxLoggerCount(int count)
 {
-    if (logger_id < 0 || logger_id >= MAX_LOGGER_COUNT) {
+    if (count < 0) {
+        return;
+    }
+
+    if (count < (int)loggers_.size()) {
+        for (size_t i = count; i < loggers_.size(); ++i) {
+            delete loggers_[i];
+        }
+    }
+    loggers_.resize(count, NULL);
+}
+
+bool LogCore::Impl::registerLogger(int logger_id, LogFormatter formatter,
+                                   int level_filter)
+{
+    if (logger_id < 0 || logger_id >= (int)loggers_.size()) {
         return false;
     }
     if (loggers_[logger_id] != NULL) {
         return false;
     }
 
-    loggers_[logger_id] = new Logger(formatter);
+    loggers_[logger_id] = new Logger(formatter, level_filter);
 
     return true;
 }
 
 void LogCore::Impl::removeLogger(int logger_id)
 {
-    if (logger_id < 0 || logger_id >= MAX_LOGGER_COUNT) {
+    if (logger_id < 0 || logger_id >= (int)loggers_.size()) {
         return;
     }
     if (NULL == loggers_[logger_id]) {
@@ -161,7 +189,7 @@ void LogCore::Impl::removeLogger(int logger_id)
 
 bool LogCore::Impl::addSink(int logger_id, LogSink *sink, int level_filter)
 {
-    if (logger_id < 0 || logger_id >= MAX_LOGGER_COUNT) {
+    if (logger_id < 0 || logger_id >= (int)loggers_.size()) {
         return false;
     }
     if (NULL == loggers_[logger_id]) {
@@ -175,7 +203,7 @@ void LogCore::Impl::log(int logger_id, int level, const char *filename,
                         int line, const char *function,
                         const char *format, va_list args)
 {
-    if (logger_id < 0 || logger_id >= MAX_LOGGER_COUNT) {
+    if (logger_id < 0 || logger_id >= (int)loggers_.size()) {
         return;
     }
     if (NULL == loggers_[logger_id]) {
@@ -188,7 +216,7 @@ void LogCore::Impl::log(int logger_id, int level, const char *filename,
 void LogCore::Impl::log(int logger_id, int level,
                         const char *buffer, size_t size)
 {
-    if (logger_id < 0 || logger_id >= MAX_LOGGER_COUNT) {
+    if (logger_id < 0 || logger_id >= (int)loggers_.size()) {
         return;
     }
     if (NULL == loggers_[logger_id]) {
@@ -198,19 +226,38 @@ void LogCore::Impl::log(int logger_id, int level,
     loggers_[logger_id]->log(level, buffer, size);
 }
 
+void LogCore::Impl::setLevelFilter(int logger_id, int level_filter)
+{
+    if (logger_id < 0 || logger_id >= (int)loggers_.size()) {
+        return;
+    }
+    if (NULL == loggers_[logger_id]) {
+        return;
+    }
+
+    loggers_[logger_id]->setLevelFilter(level_filter);
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 LogCore::LogCore() :
     pimpl_(new Impl())
 {
+    setMaxLoggerCount();
 }
 
 LogCore::~LogCore()
 {
 }
 
-bool LogCore::registerLogger(int logger_id, LogFormatter formatter)
+void LogCore::setMaxLoggerCount(int count)
 {
-    return pimpl_->registerLogger(logger_id, formatter);
+    pimpl_->setMaxLoggerCount(count);
+}
+
+bool LogCore::registerLogger(int logger_id, LogFormatter formatter,
+                             int level_filter)
+{
+    return pimpl_->registerLogger(logger_id, formatter, level_filter);
 }
 
 void LogCore::removeLogger(int logger_id)

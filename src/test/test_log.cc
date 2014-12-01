@@ -41,7 +41,7 @@ int main(void)
         UniquePtr<LogAsyncSink> async_sink(
             new LogAsyncSink(file_sink.get()));
         file_sink.release();
-        if (LogCore::getInstance()->addSink(1, async_sink.get(), 0) == false) {
+        if (LogCore::getInstance()->addSink(1, async_sink.get()) == false) {
             return -1;
         }
         async_sink.release();
