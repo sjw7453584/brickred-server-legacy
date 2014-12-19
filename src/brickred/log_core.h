@@ -43,7 +43,7 @@ public:
 
 private:
     BRICKRED_PRECREATED_SINGLETON(LogCore)
-    
+
     class Impl;
     UniquePtr<Impl> pimpl_;
 };
