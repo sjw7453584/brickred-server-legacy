@@ -28,15 +28,21 @@ public:
     bool registerLogger(int logger_id, LogFormatter formatter = NULL,
                         int level_filter = -1);
     void removeLogger(int logger_id);
-    bool addSink(int logger_id, LogSink *sink, int level_filter = -1);
+    bool addSink(int logger_id, LogSink *sink,
+                 LogFormatter formatter = NULL, int level_filter = -1);
 
     // log with formatter
     void log(int logger_id, int level,
              const char *filename, int line, const char *function,
              const char *format, ...);
-    // raw log
     void log(int logger_id, int level,
-             const char *buffer, size_t size);
+             const char *filename, int line, const char *function,
+             const char *format, va_list args);
+    // log without formatter
+    void plainLog(int logger_id, int level,
+                  const char *format, ...);
+    void plainLog(int logger_id, int level,
+                  const char *format, va_list args);
 
     // change logger level filter
     void setLevelFilter(int logger_id, int level_filter);
