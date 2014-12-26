@@ -71,7 +71,8 @@ int main(int argc, char *argv[])
       bool complete = false;
       if (net_service.asyncConnect(SocketAddress(argv[1], ::atoi(argv[2])),
                                    &complete, 5000) < 0) {
-          ::fprintf(stderr, "socket async connect failed\n");
+          ::fprintf(stderr, "socket async connect failed: %s\n",
+                    ::strerror(errno));
           return -1;
       }
     }
