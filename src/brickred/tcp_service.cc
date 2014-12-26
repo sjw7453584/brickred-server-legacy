@@ -743,22 +743,22 @@ void TcpService::Impl::closeSocket(SocketId socket_id)
     {
         TcpConnectionMap::iterator iter = connections_.find(socket_id);
         if (iter != connections_.end()) {
-            connections_.erase(iter);
             delete iter->second;
+            connections_.erase(iter);
         }
     }
     {
         TcpSocketMap::iterator iter = sockets_.find(socket_id);
         if (iter != sockets_.end()) {
-            sockets_.erase(iter);
             delete iter->second;
+            sockets_.erase(iter);
         }
     }
     {
         ContextMap::iterator iter = contexts_.find(socket_id);
         if (iter != contexts_.end()) {
-            contexts_.erase(iter);
             delete iter->second;
+            contexts_.erase(iter);
         }
     }
 }
