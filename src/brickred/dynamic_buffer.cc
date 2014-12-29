@@ -1,5 +1,6 @@
 #include <brickred/dynamic_buffer.h>
 
+#include <arpa/inet.h>
 #include <cstring>
 #include <algorithm>
 
@@ -95,6 +96,260 @@ void DynamicBuffer::clear()
 {
     read_index_ = 0;
     write_index_ = 0;
+}
+
+bool DynamicBuffer::peekInt8(uint8_t &v, size_t offset)
+{
+    if (readableBytes() < offset + 1) {
+        return false;
+    }
+    const char *p = readBegin() + offset;
+
+    v = *(const uint8_t *)p;
+
+    return true;
+}
+
+bool DynamicBuffer::peekInt8(uint16_t &v, size_t offset)
+{
+    uint8_t v8;
+    if (peekInt8(v8, offset) == false) {
+        return false;
+    }
+
+    v = v8;
+
+    return true;
+}
+
+bool DynamicBuffer::peekInt8(uint32_t &v, size_t offset)
+{
+    uint8_t v8;
+    if (peekInt8(v8, offset) == false) {
+        return false;
+    }
+
+    v = v8;
+
+    return true;
+}
+
+bool DynamicBuffer::peekInt8(uint64_t &v, size_t offset)
+{
+    uint8_t v8;
+    if (peekInt8(v8, offset) == false) {
+        return false;
+    }
+
+    v = v8;
+
+    return true;
+}
+
+bool DynamicBuffer::peekInt16(uint16_t &v, size_t offset)
+{
+    if (readableBytes() < offset + 2) {
+        return false;
+    }
+    const char *p = readBegin() + offset;
+
+    v = ntohs(*(const uint16_t *)p);
+
+    return true;
+}
+
+bool DynamicBuffer::peekInt16(uint32_t &v, size_t offset)
+{
+    uint16_t v16;
+    if (peekInt16(v16, offset) == false) {
+        return false;
+    }
+
+    v = v16;
+
+    return true;
+}
+
+bool DynamicBuffer::peekInt16(uint64_t &v, size_t offset)
+{
+    uint16_t v16;
+    if (peekInt16(v16, offset) == false) {
+        return false;
+    }
+
+    v = v16;
+
+    return true;
+}
+
+bool DynamicBuffer::peekInt32(uint32_t &v, size_t offset)
+{
+    if (readableBytes() < offset + 4) {
+        return false;
+    }
+    const char *p = readBegin() + offset;
+
+    v = ntohl(*(const uint32_t *)p);
+
+    return true;
+}
+
+bool DynamicBuffer::peekInt32(uint64_t &v, size_t offset)
+{
+    uint32_t v32;
+    if (peekInt32(v32, offset) == false) {
+        return false;
+    }
+
+    v = v32;
+
+    return true;
+}
+
+bool DynamicBuffer::peekInt64(uint64_t &v, size_t offset)
+{
+    if (readableBytes() < offset + 8) {
+        return false;
+    }
+    const char *p = readBegin() + offset;
+
+    v = (uint64_t)ntohl(*(const uint32_t *)(p + 4)) +
+        ((uint64_t)ntohl(*(const uint32_t *)p) << 32);
+
+    return true;
+}
+
+bool DynamicBuffer::readInt8(uint8_t &v)
+{
+    if (peekInt8(v) == false) {
+        return false;
+    }
+    read(1);
+
+    return true;
+}
+
+bool DynamicBuffer::readInt8(uint16_t &v)
+{
+    if (peekInt8(v) == false) {
+        return false;
+    }
+    read(1);
+
+    return true;
+}
+
+bool DynamicBuffer::readInt8(uint32_t &v)
+{
+    if (peekInt8(v) == false) {
+        return false;
+    }
+    read(1);
+
+    return true;
+}
+
+bool DynamicBuffer::readInt8(uint64_t &v)
+{
+    if (peekInt8(v) == false) {
+        return false;
+    }
+    read(1);
+
+    return true;
+}
+
+bool DynamicBuffer::readInt16(uint16_t &v)
+{
+    if (peekInt16(v) == false) {
+        return false;
+    }
+    read(2);
+
+    return true;
+}
+
+bool DynamicBuffer::readInt16(uint32_t &v)
+{
+    if (peekInt16(v) == false) {
+        return false;
+    }
+    read(2);
+
+    return true;
+}
+
+bool DynamicBuffer::readInt16(uint64_t &v)
+{
+    if (peekInt16(v) == false) {
+        return false;
+    }
+    read(2);
+
+    return true;
+}
+
+bool DynamicBuffer::readInt32(uint32_t &v)
+{
+    if (peekInt32(v) == false) {
+        return false;
+    }
+    read(4);
+
+    return true;
+}
+
+bool DynamicBuffer::readInt32(uint64_t &v)
+{
+    if (peekInt32(v) == false) {
+        return false;
+    }
+    read(4);
+
+    return true;
+}
+
+bool DynamicBuffer::readInt64(uint64_t &v)
+{
+    if (peekInt64(v) == false) {
+        return false;
+    }
+    read(8);
+
+    return true;
+}
+
+void DynamicBuffer::writeInt8(uint8_t v)
+{
+    reserveWritableBytes(1);
+    char *p = writeBegin();
+    *(uint8_t *)p = v;
+    write(1);
+}
+
+void DynamicBuffer::writeInt16(uint16_t v)
+{
+    reserveWritableBytes(2);
+    char *p = writeBegin();
+    *(uint16_t *)p = htons((uint16_t)v);
+    write(2);
+}
+
+void DynamicBuffer::writeInt32(uint32_t v)
+{
+    reserveWritableBytes(4);
+    char *p = writeBegin();
+    *(uint32_t *)p = htonl((uint32_t)v);
+    write(4);
+}
+
+void DynamicBuffer::writeInt64(uint64_t v)
+{
+    reserveWritableBytes(8);
+    char *p = writeBegin();
+    *(uint32_t *)p = htonl((uint32_t)(v >> 32));
+    *(uint32_t *)(p + 4) = htonl((uint32_t)(v & 0xffffffff));
+    write(8);
 }
 
 } // namespace brickred

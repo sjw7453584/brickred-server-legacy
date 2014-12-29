@@ -385,12 +385,10 @@ int WebSocketProtocol::Impl::readFrame(DynamicBuffer *buffer)
     // get payload length
     uint64_t payload_length = b[1] & 0x7f;
     if (126 == payload_length) {
-        // check enough data
-        if (left_bytes < 2) {
+        // get uint16_t length
+        if (buffer->peekInt16(payload_length, p - b) == false) {
             return 0;
         }
-
-        payload_length = ntohs(*(uint16_t *)p);
 
         // the minimal number of bytes MUST be used to encode the length
         if (payload_length < 126) {
@@ -402,13 +400,10 @@ int WebSocketProtocol::Impl::readFrame(DynamicBuffer *buffer)
         left_bytes -= 2;
 
     } else if (127 == payload_length) {
-        // check enough data
-        if (left_bytes < 8) {
+        // get uint64_t length
+        if (buffer->peekInt64(payload_length, p - b) == false) {
             return 0;
         }
-
-        payload_length = (uint64_t)ntohl(*(uint32_t *)(p + 4)) +
-                        ((uint64_t)ntohl(*(uint32_t *)p) << 32);
 
         // the minimal number of bytes MUST be used to encode the length
         if (payload_length < 0xffff) {
@@ -548,21 +543,14 @@ bool WebSocketProtocol::Impl::sendMessage(const char *buffer, size_t size)
     if (size < 126) {
         message.writeBegin()[0] |= size;
         message.write(1);
-
     } else if (size < 65535) {
         message.writeBegin()[0] |= 126;
         message.write(1);
-        message.reserveWritableBytes(2);
-        *(uint16_t *)message.writeBegin() = htons(size);
-        message.write(2);
-
+        message.writeInt16(size);
     } else {
         message.writeBegin()[0] |= 127;
         message.write(1);
-        message.reserveWritableBytes(8);
-        *(uint32_t *)message.writeBegin() = htonl(size >> 32);
-        *(uint32_t *)(message.writeBegin() + 4) = htonl(size & 0xffffffff);
-        message.write(8);
+        message.writeInt64(size);
     }
 
     // mask key
