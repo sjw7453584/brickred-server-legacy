@@ -28,6 +28,14 @@ private:
     UniquePtr<Impl> pimpl_;
 };
 
+namespace this_thread {
+
+// sleep for millisecond
+void sleepFor(int ms);
+void yield();
+
+} // namespace this_thread
+
 class ThreadGuard {
 public:
     explicit ThreadGuard(Thread &t) : thread_(t) {}

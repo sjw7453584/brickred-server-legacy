@@ -1,6 +1,8 @@
 #include <brickred/condition_variable.h>
 
 #include <pthread.h>
+#include <sys/times.h>
+#include <cerrno>
 
 #include <brickred/exception.h>
 #include <brickred/mutex.h>
@@ -13,6 +15,7 @@ public:
     ~Impl();
 
     void wait(Mutex &m);
+    bool waitFor(Mutex &m, int ms);
     void notifyOne();
     void notifyAll();
     void *nativeHandle();
@@ -39,11 +42,32 @@ ConditionVariable::Impl::~Impl()
 void ConditionVariable::Impl::wait(Mutex &m)
 {
     if (::pthread_cond_wait(&cond_,
-                            (pthread_mutex_t *)m.nativeHandle()) != 0) {
+            (pthread_mutex_t *)m.nativeHandle()) != 0) {
         throw SystemErrorException(
             "ConditionVariable wait failed in pthread_cond_wait"
         );
     }
+}
+
+bool ConditionVariable::Impl::waitFor(Mutex &m, int ms)
+{
+    struct timespec tv;
+    ::clock_gettime(CLOCK_REALTIME, &tv);
+    tv.tv_sec += ms / 1000;
+    tv.tv_nsec += ms % 1000 * 1000000;
+
+    int ret = ::pthread_cond_timedwait(&cond_,
+        (pthread_mutex_t *)m.nativeHandle(), &tv);
+    if (ETIMEDOUT == ret) {
+        return false;
+
+    } else if (ret != 0) {
+        throw SystemErrorException(
+            "ConditionVariable wait failed in pthread_cond_timedwait"
+        );
+    }
+
+    return true;
 }
 
 void ConditionVariable::Impl::notifyOne()
@@ -74,6 +98,11 @@ ConditionVariable::~ConditionVariable()
 void ConditionVariable::wait(Mutex &m)
 {
     pimpl_->wait(m);
+}
+
+bool ConditionVariable::waitFor(Mutex &m, int ms)
+{
+    return pimpl_->waitFor(m, ms);
 }
 
 void ConditionVariable::notifyOne()

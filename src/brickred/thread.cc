@@ -160,4 +160,23 @@ void Thread::detach()
     pimpl_->detach();
 }
 
+///////////////////////////////////////////////////////////////////////////////
+namespace this_thread {
+
+void sleepFor(int ms)
+{
+    Mutex m;
+    ConditionVariable cond;
+
+    LockGuard lock(m);
+    cond.waitFor(m, ms);
+}
+
+void yield()
+{
+    sleepFor(0);
+}
+
+} // namespace this_thread
+
 } // namespace brickred

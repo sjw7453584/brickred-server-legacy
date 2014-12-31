@@ -14,6 +14,8 @@ public:
     ~ConditionVariable();
 
     void wait(Mutex &m);
+    // wait for millisecond, return false for timeout
+    bool waitFor(Mutex &m, int ms);
     void notifyOne();
     void notifyAll();
     void *nativeHandle();
