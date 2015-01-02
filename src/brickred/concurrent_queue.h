@@ -100,14 +100,14 @@ public:
 private:
     template <class U>
     struct CleanQueue {
-        static void clean(std::deque<U> queue)
+        static void clean(std::deque<U> &queue)
         {
         }
     };
 
     template <class U>
     struct CleanQueue<U *> {
-        static void clean(std::deque<U *> queue)
+        static void clean(std::deque<U *> &queue)
         {
             for (size_t i = 0; i < queue.size(); ++i) {
                 delete queue[i];
