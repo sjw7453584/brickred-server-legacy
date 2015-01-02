@@ -2,7 +2,7 @@
 #define BRICKRED_CONCURRENT_QUEUE_H
 
 #include <cstddef>
-#include <queue>
+#include <deque>
 
 #include <brickred/condition_variable.h>
 #include <brickred/class_util.h>
@@ -15,9 +15,13 @@ class ConcurrentQueue {
 public:
     ConcurrentQueue(size_t max_size = 0) :
         max_size_(max_size), is_bounded_(max_size != 0)
-    {}
+    {
+    }
 
-    ~ConcurrentQueue() {}
+    ~ConcurrentQueue()
+    {
+        CleanQueue<T>::clean(queue_);
+    }
 
     size_t size()
     {
@@ -53,7 +57,7 @@ public:
         while (fullNoLock()) {
             not_full_cond_.wait(data_mutex_);
         }
-        queue_.push(item);
+        queue_.push_back(item);
         not_empty_cond_.notifyOne();
     }
 
@@ -63,7 +67,7 @@ public:
         if (fullNoLock()) {
             return false;
         }
-        queue_.push(item);
+        queue_.push_back(item);
         not_empty_cond_.notifyOne();
         return true;
     }
@@ -75,7 +79,7 @@ public:
             not_empty_cond_.wait(data_mutex_);
         }
         T front = queue_.front();
-        queue_.pop();
+        queue_.pop_front();
         item = front;
         not_full_cond_.notifyOne();
     }
@@ -87,13 +91,30 @@ public:
             return false;
         }
         T front = queue_.front();
-        queue_.pop();
+        queue_.pop_front();
         item = front;
         not_full_cond_.notifyOne();
         return true;
     }
 
 private:
+    template <class U>
+    struct CleanQueue {
+        static void clean(std::deque<U> queue)
+        {
+        }
+    };
+
+    template <class U>
+    struct CleanQueue<U *> {
+        static void clean(std::deque<U *> queue)
+        {
+            for (size_t i = 0; i < queue.size(); ++i) {
+                delete queue[i];
+            }
+        }
+    };
+
     bool fullNoLock() const
     {
         if (!is_bounded_) {
@@ -106,7 +127,7 @@ private:
 private:
     BRICKRED_NONCOPYABLE(ConcurrentQueue)
 
-    std::queue<T> queue_;
+    std::deque<T> queue_;
     size_t max_size_;
     bool is_bounded_;
     Mutex data_mutex_;
