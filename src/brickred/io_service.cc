@@ -156,6 +156,8 @@ bool IOService::Impl::checkIODeviceExist(IODevice *io_device) const
 
 void IOService::Impl::loop()
 {
+    quit_ = false;
+
     Timestamp now;
 
     while (!quit_) {
