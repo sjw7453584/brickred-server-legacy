@@ -59,6 +59,11 @@ public:
         return queue_.popIfNotEmpty(item);
     }
 
+    bool peek(T &item)
+    {
+        return queue_.peek(item);
+    }
+
 private:
     void pipeReadCallback(IODevice *io_device)
     {

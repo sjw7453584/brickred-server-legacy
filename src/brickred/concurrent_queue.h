@@ -97,6 +97,16 @@ public:
         return true;
     }
 
+    bool peek(T &item)
+    {
+        LockGuard lock(data_mutex_);
+        if (queue_.empty()) {
+            return false;
+        }
+        item = queue_.front();
+        return true;
+    }
+
 private:
     template <class U>
     struct CleanQueue {
