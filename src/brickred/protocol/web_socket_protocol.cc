@@ -427,7 +427,7 @@ int WebSocketProtocol::Impl::readFrame(DynamicBuffer *buffer)
         if (left_bytes < 4) {
             return 0;
         }
-        
+
         mask_key = p;
 
         // move forward

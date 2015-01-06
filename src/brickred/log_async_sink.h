@@ -3,6 +3,7 @@
 
 #include <cstddef>
 
+#include <brickred/class_util.h>
 #include <brickred/log_sink.h>
 #include <brickred/unique_ptr.h>
 
@@ -16,6 +17,8 @@ public:
     virtual void log(const char *buffer, size_t size);
 
 private:
+    BRICKRED_NONCOPYABLE(LogAsyncSink)
+
     class Impl;
     UniquePtr<Impl> pimpl_;
 };

@@ -71,7 +71,7 @@ void HttpProtocol::Impl::reset()
         delete message_;
         message_ = NULL;
     }
-    
+
     if (chunk_buffer_ != NULL) {
         delete chunk_buffer_;
         chunk_buffer_ = NULL;

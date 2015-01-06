@@ -3,6 +3,7 @@
 
 #include <cstddef>
 
+#include <brickred/class_util.h>
 #include <brickred/concurrent_queue.h>
 #include <brickred/exception.h>
 #include <brickred/function.h>
@@ -75,6 +76,8 @@ private:
     }
 
 private:
+    BRICKRED_NONCOPYABLE(MessageQueue)
+
     IOService *io_service_;
     ConcurrentQueue<T> queue_;
     SelfPipe pipe_;

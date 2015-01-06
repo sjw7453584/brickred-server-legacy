@@ -3,6 +3,7 @@
 
 #include <cstddef>
 
+#include <brickred/class_util.h>
 #include <brickred/io_device.h>
 
 namespace brickred {
@@ -21,6 +22,8 @@ public:
     virtual bool setCloseOnExec();
 
 private:
+    BRICKRED_NONCOPYABLE(SelfPipe)
+
     DescriptorId fd1_;
 };
 

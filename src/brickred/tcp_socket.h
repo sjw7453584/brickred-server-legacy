@@ -3,6 +3,7 @@
 
 #include <cstddef>
 
+#include <brickred/class_util.h>
 #include <brickred/io_device.h>
 #include <brickred/socket_address.h>
 
@@ -51,6 +52,9 @@ public:
     // setTcpNoDelay()
     // setNonblock()
     bool acceptNonblock(TcpSocket *peer);
+
+private:
+    BRICKRED_NONCOPYABLE(TcpSocket)
 };
 
 } // namespace brickred

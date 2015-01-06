@@ -4,6 +4,8 @@
 #include <cstddef>
 #include <vector>
 
+#include <brickred/class_util.h>
+
 namespace brickred {
 
 template <class T>
@@ -33,6 +35,8 @@ public:
     }
 
 private:
+    BRICKRED_NONCOPYABLE(ObjectPool)
+
     std::vector<T *> reused_object_list_;
 };
 
