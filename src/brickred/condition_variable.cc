@@ -55,6 +55,9 @@ bool ConditionVariable::Impl::waitFor(Mutex &m, int ms)
     ::clock_gettime(CLOCK_REALTIME, &tv);
     tv.tv_sec += ms / 1000;
     tv.tv_nsec += ms % 1000 * 1000000;
+    // tv_nsec may overflow 1,000,000,000
+    tv.tv_sec += tv.tv_nsec / 1000000000;
+    tv.tv_nsec = tv.tv_nsec % 1000000000;
 
     int ret = ::pthread_cond_timedwait(&cond_,
         (pthread_mutex_t *)m.nativeHandle(), &tv);
