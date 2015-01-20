@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string>
+#include <ext/hash_set>
 
 #include <brickred/command_line_option.h>
 #include <brickred/dynamic_buffer.h>
@@ -62,7 +63,8 @@ private:
     {
         if (verbose_) {
             ::printf("connection_alive(%d/%d)\n",
-                conn_count_, max_conn_count_);
+                conn_count_ - (int)connecting_sockets_.size(),
+                max_conn_count_);
         }
 
         int count = 0;
@@ -70,11 +72,11 @@ private:
         for (int i = conn_count_; i < max_conn_count_; ++i)
         {
             bool complete = false;
-            if (tcp_service_.asyncConnect(addr_,
-                                          &complete, timeout_) >= 0) {
-                if (complete) {
-                    ++conn_count_;
-                }
+            TcpService::SocketId socket_id = tcp_service_.asyncConnect(
+                addr_, &complete, timeout_);
+            if (socket_id != -1) {
+                ++conn_count_;
+                connecting_sockets_.insert(socket_id);
             }
 
             ++count;
@@ -94,7 +96,7 @@ private:
                          TcpService::SocketId from_socket_id,
                          TcpService::SocketId socket_id)
     {
-        ++conn_count_;
+        connecting_sockets_.erase(socket_id);
     }
 
     void onRecvMessage(TcpService *service,
@@ -116,6 +118,7 @@ private:
                  int error)
     {
         service->closeSocket(socket_id);
+        connecting_sockets_.erase(socket_id);
         --conn_count_;
     }
 
@@ -130,6 +133,8 @@ private:
     int conn_delay_ms_;
     int timeout_;
     bool verbose_;
+
+    __gnu_cxx::hash_set<TcpService::SocketId> connecting_sockets_;
 };
 
 static void printUsage(const char *progname)
