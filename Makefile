@@ -34,6 +34,8 @@ ifeq ($(BR_BUILD_TEST), yes)
 	@$(MAKE) -f mak/test/testtimer.mak $@
 	@$(call ECHO, "[build async_connect]")
 	@$(MAKE) -f mak/test/async_connect.mak $@
+	@$(call ECHO, "[build async_connect2]")
+	@$(MAKE) -f mak/test/async_connect2.mak $@
 	@$(call ECHO, "[build base64_encode]")
 	@$(MAKE) -f mak/test/base64_encode.mak $@
 	@$(call ECHO, "[build base64_decode]")
