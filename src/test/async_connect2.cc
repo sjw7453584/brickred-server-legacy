@@ -66,7 +66,7 @@ private:
     void connect()
     {
         if (verbose_) {
-            ::printf("id(%d) connection_alive(%d/%d)\n", id_,
+            ::printf("thread(%d) connection alive(%d/%d)\n", id_,
                 conn_count_ - (int)connecting_sockets_.size(),
                 max_conn_count_);
         }
