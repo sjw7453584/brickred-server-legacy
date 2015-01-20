@@ -1,6 +1,8 @@
 #ifndef BRICKRED_UNIQUE_PTR_H
 #define BRICKRED_UNIQUE_PTR_H
 
+#include <cstddef>
+
 #include <brickred/class_util.h>
 
 namespace brickred {
@@ -25,6 +27,46 @@ public:
     void reset(T *p = 0)
     {
         UniquePtr<T>(p).swap(*this);
+    }
+
+    BRICKRED_SAFE_BOOL_TYPE(UniquePtr)
+    operator SafeBoolType() const
+    {
+        return px_ != 0 ? &UniquePtr::SafeBoolTypeNotNull : 0;
+    }
+
+    T *release()
+    {
+        T *p = px_;
+        px_ = 0;
+
+        return p;
+    }
+
+private:
+    BRICKRED_NONCOPYABLE(UniquePtr)
+
+    T *px_;
+};
+
+template <class T>
+class UniquePtr<T[]> {
+public:
+    explicit UniquePtr(T *p = 0) : px_(p) {}
+    ~UniquePtr() { delete[] px_; }
+
+    T &operator[](size_t i) const { return px_[i]; }
+
+    void swap(UniquePtr &b)
+    {
+        T *tmp = b.px_;
+        b.px_ = px_;
+        px_ = tmp;
+    }
+
+    void reset(T *p = 0)
+    {
+        UniquePtr<T[]>(p).swap(*this);
     }
 
     BRICKRED_SAFE_BOOL_TYPE(UniquePtr)
