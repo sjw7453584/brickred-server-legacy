@@ -10,6 +10,7 @@
 #include <brickred/socket_address.h>
 #include <brickred/tcp_service.h>
 #include <brickred/thread.h>
+#include <brickred/unique_ptr.h>
 
 using namespace brickred;
 
@@ -20,7 +21,7 @@ public:
         connect_timer_(-1),
         max_conn_count_(0), conn_count_(0),
         conn_count_once_(0), conn_delay_ms_(0),
-        timeout_(0),
+        conn_timeout_(0),
         verbose_(false)
     {
         tcp_service_.setNewConnectionCallback(BRICKRED_BIND_MEM_FUNC(
@@ -40,21 +41,24 @@ public:
         }
     }
 
-    void run(const SocketAddress &addr, int max_conn_count,
-             int conn_count_once, int conn_delay_ms, int timeout,
-             bool verbose)
+    void init(int id, const SocketAddress &addr, int max_conn_count,
+              int conn_count_once, int conn_delay_ms, int conn_timeout,
+              bool verbose)
     {
+        id_ = id;
         addr_ = addr;
         max_conn_count_ = max_conn_count;
         conn_count_once_ = conn_count_once;
         conn_delay_ms_ = conn_delay_ms;
-        timeout_ = timeout;
+        conn_timeout_ = conn_timeout;
         verbose_ = verbose;
+    }
 
+    void run()
+    {
         connect();
         connect_timer_ = io_service_.startTimer(1000,
             BRICKRED_BIND_MEM_FUNC(&AsyncConnector::onTimer, this));
-
         io_service_.loop();
     }
 
@@ -62,7 +66,7 @@ private:
     void connect()
     {
         if (verbose_) {
-            ::printf("connection_alive(%d/%d)\n",
+            ::printf("id(%d) connection_alive(%d/%d)\n", id_,
                 conn_count_ - (int)connecting_sockets_.size(),
                 max_conn_count_);
         }
@@ -73,7 +77,7 @@ private:
         {
             bool complete = false;
             TcpService::SocketId socket_id = tcp_service_.asyncConnect(
-                addr_, &complete, timeout_);
+                addr_, &complete, conn_timeout_);
             if (socket_id != -1) {
                 ++conn_count_;
                 connecting_sockets_.insert(socket_id);
@@ -123,6 +127,9 @@ private:
     }
 
 private:
+    BRICKRED_NONCOPYABLE(AsyncConnector)
+
+    int id_;
     IOService io_service_;
     TcpService tcp_service_;
     SocketAddress addr_;
@@ -131,7 +138,7 @@ private:
     int conn_count_;
     int conn_count_once_;
     int conn_delay_ms_;
-    int timeout_;
+    int conn_timeout_;
     bool verbose_;
 
     __gnu_cxx::hash_set<TcpService::SocketId> connecting_sockets_;
@@ -140,8 +147,11 @@ private:
 static void printUsage(const char *progname)
 {
     ::fprintf(stderr, "usage: %s <ip> <port>\n"
-              "[-c <conn_count_once>] [-d conn_delay_ms]\n"
-              "[-n <max_conn_count>] [-t <timeout>]\n",
+              "[-c <conn_count_once>]\n"
+              "[-d <conn_delay_ms>]\n"
+              "[-l <thread_count>]\n"
+              "[-n <max_conn_count>]\n"
+              "[-t <conn_timeout>]\n",
               progname);
 }
 
@@ -152,12 +162,14 @@ int main(int argc, char *argv[])
     int max_conn_count;
     int conn_count_once = 50;
     int conn_delay_ms = 20;
-    int timeout = 5000;
+    int conn_timeout = 5000;
+    int thread_count = 1;
     bool verbose = false;
 
     CommandLineOption options;
     options.addOption("c", CommandLineOption::ParameterType::REQUIRED);
     options.addOption("d", CommandLineOption::ParameterType::REQUIRED);
+    options.addOption("l", CommandLineOption::ParameterType::REQUIRED);
     options.addOption("n", CommandLineOption::ParameterType::REQUIRED);
     options.addOption("t", CommandLineOption::ParameterType::REQUIRED);
     options.addOption("v");
@@ -172,11 +184,14 @@ int main(int argc, char *argv[])
     if (options.hasOption("d")) {
         conn_delay_ms = ::atoi(options.getParameter("d").c_str());
     }
+    if (options.hasOption("l")) {
+        thread_count = ::atoi(options.getParameter("l").c_str());
+    }
     if (options.hasOption("n")) {
         max_conn_count = ::atoi(options.getParameter("n").c_str());
     }
     if (options.hasOption("t")) {
-        timeout = ::atoi(options.getParameter("t").c_str());
+        conn_timeout = ::atoi(options.getParameter("t").c_str());
     }
     if (options.hasOption("v")) {
         verbose = true;
@@ -186,14 +201,27 @@ int main(int argc, char *argv[])
         printUsage(argv[0]);
         return -1;
     }
-
     ip = options.getLeftArguments()[0];
     port = ::atoi(options.getLeftArguments()[1].c_str());
     max_conn_count = ::atoi(options.getLeftArguments()[2].c_str());
 
-    AsyncConnector connector;
-    connector.run(SocketAddress(ip, port), max_conn_count,
-                  conn_count_once, conn_delay_ms, timeout, verbose);
+    SocketAddress addr(ip, port);
+    UniquePtr<Thread[]> threads(new Thread[thread_count]);
+    UniquePtr<AsyncConnector[]> connectors(new AsyncConnector[thread_count]);
+
+    for (int i = 0; i < thread_count; ++i) {
+        connectors[i].init(i, addr, max_conn_count,
+            conn_count_once, conn_delay_ms, conn_timeout, verbose);
+    }
+
+    for (int i = 0; i < thread_count; ++i) {
+        threads[i].start(BRICKRED_BIND_MEM_FUNC(
+            &AsyncConnector::run, &connectors[i]));
+    }
+
+    for (int i = 0; i < thread_count; ++i) {
+        threads[i].join();
+    }
 
     return 0;
 }
