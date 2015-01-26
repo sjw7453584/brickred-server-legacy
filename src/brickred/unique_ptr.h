@@ -56,6 +56,7 @@ public:
     ~UniquePtr() { delete[] px_; }
 
     T &operator[](size_t i) const { return px_[i]; }
+    T *get() const { return px_; }
 
     void swap(UniquePtr &b)
     {
