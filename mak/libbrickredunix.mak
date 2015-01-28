@@ -2,6 +2,7 @@ include config.mak
 
 TARGET = build/libbrickredunix
 SRCS = \
+src/brickred/unix/signal_queue.cc \
 src/brickred/unix/system.cc \
 
 LINK_TYPE = static
