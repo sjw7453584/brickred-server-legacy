@@ -1,7 +1,9 @@
 include config.mak
 
 TARGET = build/libbrickredunix
-SRCS = src/brickred/unix/system.cc
+SRCS = \
+src/brickred/unix/system.cc \
+
 LINK_TYPE = static
 INCLUDE = -Isrc
 BUILD_DIR = build
