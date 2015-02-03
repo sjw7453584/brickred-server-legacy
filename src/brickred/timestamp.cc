@@ -28,8 +28,8 @@ Timestamp &Timestamp::operator+=(int64_t millisecond)
     second_ += millisecond / 1000;
     nanosecond_ += millisecond % 1000 * 1000000;
     if (nanosecond_ >= 1000000000) {
-      second_ += 1;
-      nanosecond_ -= 1000000000;
+        second_ += 1;
+        nanosecond_ -= 1000000000;
     }
 
     return *this;
