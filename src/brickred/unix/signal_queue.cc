@@ -39,7 +39,7 @@ SignalQueue::Impl::Impl(IOService &io_service) :
         );
     }
 
-    pipe_.setReadCallback(BRICKRED_BIND_TEMPLATE_MEM_FUNC(
+    pipe_.setReadCallback(BRICKRED_BIND_MEM_FUNC(
         &SignalQueue::Impl::pipeReadCallback, this));
     pipe_.attachIOService(*io_service_);
 }
