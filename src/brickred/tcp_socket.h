@@ -28,6 +28,10 @@ public:
     int recv(char *buffer, size_t size);
     int send(const char *buffer, size_t size);
 
+    bool shutdownRead();
+    bool shutdonwWrite();
+    bool shutdownBoth();
+
     // -*- tcp options -*-
     int getSocketError();
     bool setReuseAddr();

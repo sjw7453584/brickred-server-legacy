@@ -159,6 +159,33 @@ int TcpSocket::send(const char *buffer, size_t size)
     return ::send(fd_, buffer, size, MSG_NOSIGNAL);
 }
 
+bool TcpSocket::shutdownRead()
+{
+    if (::shutdown(fd_, SHUT_RD) != 0) {
+        return false;
+    }
+
+    return true;
+}
+
+bool TcpSocket::shutdonwWrite()
+{
+    if (::shutdown(fd_, SHUT_WR) != 0) {
+        return false;
+    }
+
+    return true;
+}
+
+bool TcpSocket::shutdownBoth()
+{
+    if (::shutdown(fd_, SHUT_RDWR) != 0) {
+        return false;
+    }
+
+    return true;
+}
+
 int TcpSocket::getSocketError()
 {
     int opt = 0;
