@@ -28,7 +28,7 @@ $(addprefix $(BUILD_DIR), $(subst /,_, $(addsuffix .o, $(basename $1)))): $1
 	@$(call ECHO, "[compiling $$@ ...]")
 	@$(CC_) -o $$@ $$(CFLAGS) $$(INCLUDES) $$<
 $(addprefix $(BUILD_DIR), $(subst /,_, $(addsuffix .d, $(basename $1)))): $1
-	@$(CC_) -MM $$(CFLAGS) $$(INCLUDES) $$< | $(SED_) 's,^.*:,$$@ :,g' | $(SED_) 's/\.d/\.o/' >$$@
+	@$(CC_) -M $$(CFLAGS) $$(INCLUDES) $$< | $(SED_) 's,^.*:,$$@ :,g' | $(SED_) 's/\.d/\.o/' >$$@
 endef
 
 define make_cc_rule
@@ -36,7 +36,7 @@ $(addprefix $(BUILD_DIR), $(subst /,_, $(addsuffix .o, $(basename $1)))): $1
 	@$(call ECHO, "[compiling $$@ ...]")
 	@$(CXX_) -o $$@ $$(CPPFLAGS) $$(INCLUDES) $$<
 $(addprefix $(BUILD_DIR), $(subst /,_, $(addsuffix .d, $(basename $1)))): $1
-	@$(CXX_) -MM $$(CPPFLAGS) $$(INCLUDES) $$< | $(SED_) 's,^.*:,$$@ :,g' | $(SED_) 's/\.d/\.o/' >$$@
+	@$(CXX_) -M $$(CPPFLAGS) $$(INCLUDES) $$< | $(SED_) 's,^.*:,$$@ :,g' | $(SED_) 's/\.d/\.o/' >$$@
 endef
 
 #==============================================================================
