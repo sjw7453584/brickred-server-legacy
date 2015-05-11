@@ -109,5 +109,5 @@ ifneq ($(MAKECMDGOALS), clean)
 endif
 
 clean:
-	@$(call ECHO, "[cleaning $(OBJS) $(DEPS) $(FINAL_TARGET)...]")
+	@$(call ECHO, "[cleaning $(FINAL_TARGET)...]")
 	@$(RM_) $(OBJS) $(DEPS) $(FINAL_TARGET)
