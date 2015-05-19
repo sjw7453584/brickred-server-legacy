@@ -14,6 +14,8 @@
 
 namespace brickred {
 
+namespace tcp_service_impl {
+
 class SocketIdAllocator {
 public:
     SocketIdAllocator() : value_(0) {}
@@ -88,6 +90,8 @@ TcpConnection::TcpConnection(TcpSocket *socket,
     write_buffer_(write_buffer_init_size, write_buffer_expand_size)
 {
 }
+
+} using namespace tcp_service_impl;
 
 ///////////////////////////////////////////////////////////////////////////////
 class TcpService::Impl {

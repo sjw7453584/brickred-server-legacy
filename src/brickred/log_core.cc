@@ -6,9 +6,11 @@
 
 #include <brickred/log_sink.h>
 
+#define LOG_BUFFER_SIZE 4096
+
 namespace brickred {
 
-#define LOG_BUFFER_SIZE 4096
+namespace log_core_impl {
 
 class Logger {
 public:
@@ -124,6 +126,8 @@ void Logger::plainLog(int level, const char *format, va_list args)
         sinks_[i]->log(buffer, count);
     }
 }
+
+} using namespace log_core_impl;
 
 ///////////////////////////////////////////////////////////////////////////////
 class LogCore::Impl {

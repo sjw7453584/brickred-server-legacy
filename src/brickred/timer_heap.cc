@@ -11,6 +11,8 @@
 
 namespace brickred {
 
+namespace timer_heap_impl {
+
 class TimerIdAllocator {
 public:
     TimerIdAllocator() : value_(0) {}
@@ -28,6 +30,7 @@ private:
     int64_t value_;
 };
 
+///////////////////////////////////////////////////////////////////////////////
 class Timer {
 public:
     typedef TimerHeap::TimerId TimerId;
@@ -64,6 +67,8 @@ Timer::Timer(TimerId id, const Timestamp &timestamp, int timeout,
     heap_pos_(-1)
 {
 }
+
+} using namespace timer_heap_impl;
 
 ///////////////////////////////////////////////////////////////////////////////
 class TimerHeap::Impl {
