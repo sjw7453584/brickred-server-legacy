@@ -20,9 +20,14 @@ public:
     );
 
     // call by LogCore constructor, default max logger count is 1
-    // if you need more loggers, you should call this function
-    // before call registerLogger()
+    // if you need more loggers,
+    // you should call this function before call registerLogger()
     void setMaxLoggerCount(int count = 1);
+
+    // call by LogCore constructor, default log buffer size is 4096,
+    // that means if one log is large than 4096 bytes, it will be truncated
+    // you should call this function before call registerLogger()
+    void setMaxLogSize(int size = 4096);
 
     // logger_id must be in [0, max_logger_count)
     bool registerLogger(int logger_id, LogFormatter formatter = NULL,

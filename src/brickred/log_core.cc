@@ -6,8 +6,6 @@
 
 #include <brickred/log_sink.h>
 
-#define LOG_BUFFER_SIZE 4096
-
 namespace brickred {
 
 namespace log_core_impl {
@@ -19,7 +17,8 @@ public:
     typedef std::vector<int> LogLevelVector;
     typedef std::vector<LogFormatter> LogFormatterVector;
 
-    explicit Logger(LogFormatter formatter, int level_filter);
+    explicit Logger(LogFormatter formatter, int level_filter,
+                    int max_log_size);
     ~Logger();
 
     bool addSink(LogSink *sink, LogFormatter formatter, int level_filter);
@@ -31,14 +30,17 @@ public:
 private:
     LogFormatter formatter_;
     int level_filter_;
+    int max_log_size_;
     LogSinkVector sinks_;
     LogFormatterVector sink_formatters_;
     LogLevelVector sink_level_filters_;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-Logger::Logger(LogFormatter formatter, int level_filter) :
-    formatter_(formatter), level_filter_(level_filter)
+Logger::Logger(LogFormatter formatter, int level_filter,
+               int max_log_size) :
+    formatter_(formatter), level_filter_(level_filter),
+    max_log_size_(max_log_size)
 {
 }
 
@@ -69,7 +71,7 @@ void Logger::log(int level, const char *filename, int line,
         return;
     }
 
-    char buffer[LOG_BUFFER_SIZE];
+    UniquePtr<char []> buffer(new char[max_log_size_]);
     size_t count = 0;
     bool buffer_ready = false;
 
@@ -89,16 +91,17 @@ void Logger::log(int level, const char *filename, int line,
             }
 
             if (NULL == formatter) {
-                count = ::vsnprintf(buffer, sizeof(buffer), format, args);
+                count = ::vsnprintf(buffer.get(), max_log_size_,
+                                    format, args);
             } else {
-                count = formatter(buffer, sizeof(buffer),
+                count = formatter(buffer.get(), max_log_size_,
                                   level, filename, line, function,
                                   format, args);
             }
             buffer_ready = true;
         }
 
-        sinks_[i]->log(buffer, count);
+        sinks_[i]->log(buffer.get(), count);
     }
 }
 
@@ -108,7 +111,7 @@ void Logger::plainLog(int level, const char *format, va_list args)
         return;
     }
 
-    char buffer[LOG_BUFFER_SIZE];
+    UniquePtr<char []> buffer(new char[max_log_size_]);
     size_t count = 0;
     bool buffer_ready = false;
 
@@ -119,11 +122,11 @@ void Logger::plainLog(int level, const char *format, va_list args)
 
         // lazy format
         if (!buffer_ready) {
-            count = ::vsnprintf(buffer, sizeof(buffer), format, args);
+            count = ::vsnprintf(buffer.get(), max_log_size_, format, args);
             buffer_ready = true;
         }
 
-        sinks_[i]->log(buffer, count);
+        sinks_[i]->log(buffer.get(), count);
     }
 }
 
@@ -139,6 +142,7 @@ public:
     ~Impl();
 
     void setMaxLoggerCount(int count);
+    void setMaxLogSize(int size);
 
     bool registerLogger(int logger_id, LogFormatter formatter,
                         int level_filter);
@@ -156,12 +160,14 @@ public:
 
 private:
     LoggerVector loggers_;
+    int max_log_size_;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 BRICKRED_SINGLETON2_IMPL(LogCore)
 
-LogCore::Impl::Impl()
+LogCore::Impl::Impl() :
+    max_log_size_(0)
 {
 }
 
@@ -186,6 +192,11 @@ void LogCore::Impl::setMaxLoggerCount(int count)
     loggers_.resize(count, NULL);
 }
 
+void LogCore::Impl::setMaxLogSize(int size)
+{
+    max_log_size_ = size;
+}
+
 bool LogCore::Impl::registerLogger(int logger_id, LogFormatter formatter,
                                    int level_filter)
 {
@@ -196,7 +207,7 @@ bool LogCore::Impl::registerLogger(int logger_id, LogFormatter formatter,
         return false;
     }
 
-    loggers_[logger_id] = new Logger(formatter, level_filter);
+    loggers_[logger_id] = new Logger(formatter, level_filter, max_log_size_);
 
     return true;
 }
@@ -280,6 +291,11 @@ LogCore::~LogCore()
 void LogCore::setMaxLoggerCount(int count)
 {
     pimpl_->setMaxLoggerCount(count);
+}
+
+void LogCore::setMaxLogSize(int size)
+{
+    pimpl_->setMaxLogSize(size);
 }
 
 bool LogCore::registerLogger(int logger_id, LogFormatter formatter,
