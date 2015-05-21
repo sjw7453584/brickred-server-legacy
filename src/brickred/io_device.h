@@ -28,6 +28,7 @@ public:
     void setId(int64_t id) { id_ = id; }
     DescriptorId getDescriptor() const { return fd_; }
     void setDescriptor(DescriptorId fd) { fd_ = fd; }
+    bool dupDescriptor(DescriptorId fd);
 
     const ReadCallback &getReadCallback() const { return read_cb_; }
     const WriteCallback &getWriteCallback() const { return write_cb_; }
@@ -40,6 +41,7 @@ public:
     virtual int write(const char *buffer, size_t size);
     virtual bool setNonblock();
     virtual bool setCloseOnExec();
+
 
 protected:
     IOService *io_service_;

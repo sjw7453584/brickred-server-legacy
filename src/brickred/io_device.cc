@@ -17,6 +17,17 @@ IODevice::~IODevice()
     detachIOService();
 }
 
+bool IODevice::dupDescriptor(DescriptorId fd)
+{
+    int dup_fd = ::dup(fd);
+    if (-1 == dup_fd) {
+        return false;
+    }
+    fd_ = dup_fd;
+
+    return true;
+}
+
 bool IODevice::attachIOService(IOService &io_service)
 {
     if (io_service_ != NULL) {

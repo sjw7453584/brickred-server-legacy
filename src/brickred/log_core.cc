@@ -194,6 +194,10 @@ void LogCore::Impl::setMaxLoggerCount(int count)
 
 void LogCore::Impl::setMaxLogSize(int size)
 {
+    if (size <= 0) {
+        return;
+    }
+
     max_log_size_ = size;
 }
 
@@ -282,6 +286,7 @@ LogCore::LogCore() :
     pimpl_(new Impl())
 {
     setMaxLoggerCount();
+    setMaxLogSize();
 }
 
 LogCore::~LogCore()

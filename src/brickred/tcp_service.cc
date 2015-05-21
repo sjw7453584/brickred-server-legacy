@@ -587,7 +587,9 @@ TcpService::Impl::SocketId TcpService::Impl::shareListen(
     const TcpSocket &shared_socket)
 {
     UniquePtr<TcpSocket> socket(new TcpSocket());
-    socket->setDescriptor(shared_socket.getDescriptor());
+    if (socket->dupDescriptor(shared_socket.getDescriptor()) == false) {
+        return -1;
+    }
 
     return buildListenSocket(socket);
 }
