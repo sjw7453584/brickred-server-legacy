@@ -48,6 +48,8 @@ public:
     SocketId asyncConnect(const SocketAddress &addr, bool *complete,
                           int timeout_ms = -1);
 
+    bool isConnected(SocketId socket_id) const;
+
     bool getLocalAddress(SocketId socket_id, SocketAddress *addr) const;
     bool getPeerAddress(SocketId socket_id, SocketAddress *addr) const;
 

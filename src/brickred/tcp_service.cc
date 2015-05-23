@@ -121,6 +121,8 @@ public:
     SocketId asyncConnect(const SocketAddress &addr, bool *complete,
                           int timeout_ms);
 
+    bool isConnected(SocketId socket_id) const;
+
     bool getLocalAddress(SocketId socket_id, SocketAddress *addr) const;
     bool getPeerAddress(SocketId socket_id, SocketAddress *addr) const;
 
@@ -652,6 +654,17 @@ TcpService::Impl::SocketId TcpService::Impl::asyncConnect(
     return 0;
 }
 
+bool TcpService::Impl::isConnected(SocketId socket_id) const
+{
+    TcpConnectionMap::const_iterator iter = connections_.find(socket_id);
+    if (connections_.end() == iter) {
+        return false;
+    }
+    TcpConnection *connection = iter->second;
+
+    return connection->getStatus() == TcpConnection::Status::CONNECTED;
+}
+
 bool TcpService::Impl::getLocalAddress(SocketId socket_id,
                                        SocketAddress *addr) const
 {
@@ -892,6 +905,11 @@ TcpService::SocketId TcpService::asyncConnect(
     const SocketAddress &addr, bool *complete, int timeout_ms)
 {
     return pimpl_->asyncConnect(addr, complete, timeout_ms);
+}
+
+bool TcpService::isConnected(SocketId socket_id) const
+{
+    return pimpl_->isConnected(socket_id);
 }
 
 bool TcpService::getLocalAddress(SocketId socket_id, SocketAddress *addr) const
