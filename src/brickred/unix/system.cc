@@ -32,23 +32,14 @@ bool daemon(bool change_dir, bool close_stdio)
     }
 
     if (close_stdio) {
-        int fd = ::open("/dev/null", O_RDWR);
-        if (-1 == fd) {
+        if (::freopen("/dev/null", "r", stdin) == NULL) {
             return false;
         }
-
-        if (::dup2(fd, STDIN_FILENO) == -1) {
+        if (::freopen("/dev/null", "w", stdout) == NULL) {
             return false;
         }
-        if (::dup2(fd, STDOUT_FILENO) == -1) {
+        if (::freopen("/dev/null", "w", stderr) == NULL) {
             return false;
-        }
-        if (::dup2(fd, STDERR_FILENO) == -1) {
-            return false;
-        }
-
-        if (fd > STDERR_FILENO) {
-            ::close(fd);
         }
     }
 
