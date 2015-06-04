@@ -1,4 +1,7 @@
-#include <cstdio>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
 
 #include <brickred/codec/base64.h>
 
@@ -6,34 +9,25 @@ using namespace brickred;
 
 int main(int argc, char *argv[])
 {
-    FILE *fp = NULL;
+    std::stringstream ss;
 
     if (1 == argc) {
-        fp = stdin;
+        ss << std::cin.rdbuf();
+
     } else if (2 == argc) {
-        fp = ::fopen(argv[1], "rb");
-        if (NULL == fp) {
+        std::ifstream fs(argv[1]);
+        if (fs.is_open() == false) {
             ::fprintf(stderr, "can not open file %s\n", argv[1]);
             return -1;
         }
+        ss << fs.rdbuf();
+
     } else {
         ::fprintf(stderr, "usage: %s <file>\n", argv[0]);
         return -1;
     }
 
-    char buffer[300];
-
-    for (;;) {
-        size_t count = ::fread(buffer, 1, sizeof(buffer), fp);
-        if (count > 0) {
-            ::printf("%s", codec::base64Encode(buffer, count).c_str());
-        }
-        if (count < sizeof(buffer)) {
-            break;
-        }
-    }
-
-    ::fclose(fp);
+    std::cout << codec::base64Encode(ss.str());
 
     return 0;
 }

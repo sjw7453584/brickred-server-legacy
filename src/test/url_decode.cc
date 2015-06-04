@@ -3,7 +3,7 @@
 #include <sstream>
 #include <string>
 
-#include <brickred/codec/base64.h>
+#include <brickred/codec/url.h>
 
 using namespace brickred;
 
@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    std::cout << codec::base64Decode(ss.str());
+    std::cout << codec::urlDecode(ss.str());
 
     return 0;
 }

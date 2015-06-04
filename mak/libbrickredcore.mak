@@ -24,6 +24,7 @@ src/brickred/timestamp.cc \
 src/brickred/string_util.cc \
 src/brickred/codec/base64.cc \
 src/brickred/codec/sha1.cc \
+src/brickred/codec/url.cc \
 src/brickred/protocol/http_message.cc \
 src/brickred/protocol/http_protocol.cc \
 src/brickred/protocol/http_request.cc \
