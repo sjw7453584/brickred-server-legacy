@@ -164,7 +164,7 @@ private:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-BRICKRED_SINGLETON2_IMPL(LogCore)
+BRICKRED_PRECREATED_SINGLETON_IMPL(LogCore)
 
 LogCore::Impl::Impl() :
     max_log_size_(0)

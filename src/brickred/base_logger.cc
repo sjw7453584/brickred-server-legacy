@@ -4,7 +4,7 @@
 
 namespace brickred {
 
-BRICKRED_SINGLETON2_IMPL(BaseLogger)
+BRICKRED_PRECREATED_SINGLETON_IMPL(BaseLogger)
 
 static void defaultLogFunc(int level, const char *format, va_list args) {
     if (level < BaseLogger::LogLevel::MIN ||
