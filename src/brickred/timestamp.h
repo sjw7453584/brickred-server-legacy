@@ -25,6 +25,7 @@ public:
     int64_t distanceSecond(const Timestamp &other) const;
     int64_t distanceMillisecond(const Timestamp &other) const;
 
+    static time_t now();
     static size_t format(char *buffer, size_t size,
                          const char *format, time_t second);
 

@@ -77,6 +77,13 @@ int64_t Timestamp::distanceMillisecond(const Timestamp &other) const
            (bigger->nanosecond_ - smaller->nanosecond_) / 1000000;
 }
 
+time_t Timestamp::now()
+{
+    struct timespec tv;
+    ::clock_gettime(CLOCK_REALTIME, &tv);
+    return tv.tv_sec;
+}
+
 size_t Timestamp::format(char *buffer, size_t size,
                          const char *format, time_t second)
 {
