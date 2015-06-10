@@ -6,7 +6,6 @@
 #include <ext/hash_map>
 
 #include <brickred/base_logger.h>
-#include <brickred/io_service.h>
 #include <brickred/timestamp.h>
 
 namespace brickred {

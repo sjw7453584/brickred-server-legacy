@@ -9,7 +9,6 @@
 
 namespace brickred {
 
-class IOService;
 class Timestamp;
 
 class TimerHeap {
