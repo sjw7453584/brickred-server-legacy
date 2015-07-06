@@ -42,7 +42,6 @@ public:
     virtual bool setNonblock();
     virtual bool setCloseOnExec();
 
-
 protected:
     IOService *io_service_;
     int64_t id_;
