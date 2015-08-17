@@ -88,7 +88,7 @@ std::string rtrim(const std::string &str, const char *ws)
 
 std::string trim(const std::string &str, const char *ws)
 {
-    return rtrim(ltrim(str));
+    return rtrim(ltrim(str, ws));
 }
 
 std::string toUpper(const std::string &str)
