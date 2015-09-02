@@ -23,6 +23,8 @@ public:
     uint32_t nextInt();
     // uniformly distributed on range [0, max)
     uint32_t nextInt(uint32_t max);
+    // uniformly distributed on range [min, max]
+    uint32_t nextInt(uint32_t min, uint32_t max);
     // uniformly distributed on range [0, 1)
     double nextDouble();
 

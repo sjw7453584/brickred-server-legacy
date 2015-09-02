@@ -62,6 +62,7 @@ public:
 
     uint32_t nextInt();
     uint32_t nextInt(uint32_t max);
+    uint32_t nextInt(uint32_t min, uint32_t max);
     double nextDouble();
 
 private:
@@ -181,6 +182,14 @@ uint32_t Random::Impl::nextInt(uint32_t max)
     return (uint32_t)(nextDouble() * max);
 }
 
+uint32_t Random::Impl::nextInt(uint32_t min, uint32_t max)
+{
+    if (max >= min) {
+        return min;
+    }
+    return min + nextInt(max - min + 1);
+}
+
 double Random::Impl::nextDouble()
 {
     uint32_t a = nextInt() >> 5;
@@ -227,6 +236,11 @@ uint32_t Random::nextInt()
 uint32_t Random::nextInt(uint32_t max)
 {
     return pimpl_->nextInt(max);
+}
+
+uint32_t Random::nextInt(uint32_t min, uint32_t max)
+{
+    return pimpl_->nextInt(min, max);
 }
 
 double Random::nextDouble()
