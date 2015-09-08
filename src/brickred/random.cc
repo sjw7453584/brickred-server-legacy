@@ -184,7 +184,7 @@ uint32_t Random::Impl::nextInt(uint32_t max)
 
 uint32_t Random::Impl::nextInt(uint32_t min, uint32_t max)
 {
-    if (max >= min) {
+    if (min >= max) {
         return min;
     }
     return min + nextInt(max - min + 1);
