@@ -1,5 +1,6 @@
 #include <brickred/log_core.h>
 
+#include <algorithm>
 #include <cstdarg>
 #include <cstdio>
 #include <vector>
@@ -98,6 +99,7 @@ void Logger::log(int level, const char *filename, int line,
                                   level, filename, line, function,
                                   format, args);
             }
+            count = std::min(count, (size_t)max_log_size_);
             buffer_ready = true;
         }
 
@@ -123,6 +125,7 @@ void Logger::plainLog(int level, const char *format, va_list args)
         // lazy format
         if (!buffer_ready) {
             count = ::vsnprintf(buffer.get(), max_log_size_, format, args);
+            count = std::min(count, (size_t)max_log_size_);
             buffer_ready = true;
         }
 
