@@ -16,7 +16,7 @@ public:
     Thread();
     ~Thread();
 
-    void start(ThreadFunc thread_func);
+    void start(const ThreadFunc &thread_func);
     bool joinable();
     void join();
     void detach();

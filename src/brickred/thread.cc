@@ -13,7 +13,7 @@ public:
     Impl();
     ~Impl();
 
-    void start(ThreadFunc thread_func);
+    void start(const ThreadFunc &thread_func);
     bool joinable();
     void join();
     void detach();
@@ -47,7 +47,7 @@ Thread::Impl::~Impl()
     }
 }
 
-void Thread::Impl::start(ThreadFunc thread_func)
+void Thread::Impl::start(const ThreadFunc &thread_func)
 {
     LockGuard lock(data_mutex_);
 
@@ -140,7 +140,7 @@ Thread::~Thread()
 {
 }
 
-void Thread::start(ThreadFunc thread_func)
+void Thread::start(const ThreadFunc &thread_func)
 {
     pimpl_->start(thread_func);
 }
