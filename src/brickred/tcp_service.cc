@@ -130,6 +130,7 @@ public:
                      const SendCompleteCallback &send_complete_cb);
     bool sendMessageThenClose(SocketId socket_id,
                               const char *buffer, size_t size);
+    void broadcastMessage(const char *buffer, size_t size);
     void closeSocket(SocketId socket_id);
 
     Context *getContext(SocketId socket_id) const;
@@ -146,7 +147,7 @@ public:
     void setSendBufferInitSize(size_t size);
     void setSendBufferExpandSize(size_t size);
 
-public:
+private:
     SocketId buildListenSocket(UniquePtr<TcpSocket> &socket);
     SocketId buildConnectedSocket(UniquePtr<TcpSocket> &socket);
     SocketId buildAsyncConnectSocket(UniquePtr<TcpSocket> &socket,
@@ -162,6 +163,9 @@ public:
     void onSocketWrite(IODevice *io_device);
     void onSocketError(IODevice *io_device);
 
+    bool sendMessage(TcpConnection *connection,
+                     const char *buffer, size_t size,
+                     const SendCompleteCallback &send_complete_cb);
     void sendCompleteCloseCallback(TcpService *service, SocketId socket_id);
 
 private:
@@ -689,25 +693,37 @@ bool TcpService::Impl::getPeerAddress(SocketId socket_id,
     return socket->getPeerAddress(addr);
 }
 
-bool TcpService::Impl::sendMessage(SocketId socket_id, const char *buffer,
-    size_t size, const SendCompleteCallback &send_complete_cb)
+bool TcpService::Impl::sendMessage(SocketId socket_id,
+    const char *buffer, size_t size,
+    const SendCompleteCallback &send_complete_cb)
 {
-    TcpSocketMap::iterator iter = sockets_.find(socket_id);
-    if (sockets_.end() == iter) {
+    TcpConnectionMap::iterator iter = connections_.find(socket_id);
+    if (connections_.end() == iter) {
         return false;
     }
-    TcpConnectionMap::iterator iter2 = connections_.find(socket_id);
-    if (connections_.end() == iter2) {
-        return false;
+    TcpConnection *connection = iter->second;
+
+    return sendMessage(connection, buffer, size, send_complete_cb);
+}
+
+void TcpService::Impl::broadcastMessage(const char *buffer, size_t size)
+{
+    for (TcpConnectionMap::iterator iter = connections_.begin();
+         iter != connections_.end(); ++iter) {
+        TcpConnection *connection = iter->second;
+        sendMessage(connection, buffer, size, NullFunction());
     }
+}
 
-    TcpSocket *socket = iter->second;
-    TcpConnection *connection = iter2->second;
-
+bool TcpService::Impl::sendMessage(TcpConnection *connection,
+    const char *buffer, size_t size,
+    const SendCompleteCallback &send_complete_cb)
+{
     if (connection->getStatus() != TcpConnection::Status::CONNECTED) {
         return false;
     }
 
+    TcpSocket *socket = connection->getSocket();
     DynamicBuffer &write_buffer = connection->getWriteBuffer();
     size_t remain_size = size;
 
@@ -737,7 +753,7 @@ bool TcpService::Impl::sendMessage(SocketId socket_id, const char *buffer,
             &TcpService::Impl::onSocketWrite, this));
     } else {
         if (send_complete_cb) {
-            send_complete_cb(thiz_, socket_id);
+            send_complete_cb(thiz_, socket->getId());
         }
     }
 
@@ -932,6 +948,11 @@ bool TcpService::sendMessageThenClose(SocketId socket_id,
     const char *buffer, size_t size)
 {
     return pimpl_->sendMessageThenClose(socket_id, buffer, size);
+}
+
+void TcpService::broadcastMessage(const char *buffer, size_t size)
+{
+    return pimpl_->broadcastMessage(buffer, size);
 }
 
 void TcpService::closeSocket(SocketId socket_id)

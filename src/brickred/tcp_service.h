@@ -57,6 +57,7 @@ public:
         const SendCompleteCallback &send_complete_cb = NullFunction());
     bool sendMessageThenClose(SocketId socket_id,
                               const char *buffer, size_t size);
+    void broadcastMessage(const char *buffer, size_t size);
     void closeSocket(SocketId socket_id);
 
     Context *getContext(SocketId socket_id) const;
