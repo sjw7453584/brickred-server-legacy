@@ -47,6 +47,11 @@ public:
         recv_message_cb_ = recv_message_cb;
     }
 
+    size_t size()
+    {
+        return queue_.size();
+    }
+
     // may block
     void push(const T &item)
     {
@@ -65,9 +70,9 @@ public:
         return queue_.peek(item);
     }
 
-    size_t size()
+    void yield()
     {
-        return queue_.size();
+        pipe_.write("1", 1);
     }
 
 private:
