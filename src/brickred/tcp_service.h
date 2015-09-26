@@ -73,6 +73,7 @@ public:
     void setRecvBufferMaxSize(size_t size = 0);
     void setSendBufferInitSize(size_t size = 1024);
     void setSendBufferExpandSize(size_t size = 1024);
+    void setSendBufferMaxSize(size_t size = 0);
 
 private:
     BRICKRED_NONCOPYABLE(TcpService)

@@ -104,6 +104,7 @@ public:
     typedef TcpService::ErrorCallback ErrorCallback;
     typedef TcpService::SendCompleteCallback SendCompleteCallback;
     typedef IOService::TimerId TimerId;
+    typedef IOService::TimerCallback TimerCallback;
     typedef __gnu_cxx::hash_map<SocketId, TcpSocket *> TcpSocketMap;
     typedef __gnu_cxx::hash_map<SocketId, TcpConnection *> TcpConnectionMap;
     typedef __gnu_cxx::hash_map<SocketId, Context *> ContextMap;
@@ -146,6 +147,7 @@ public:
     void setRecvBufferMaxSize(size_t size);
     void setSendBufferInitSize(size_t size);
     void setSendBufferExpandSize(size_t size);
+    void setSendBufferMaxSize(size_t size);
 
 private:
     SocketId buildListenSocket(UniquePtr<TcpSocket> &socket);
@@ -153,8 +155,9 @@ private:
     SocketId buildAsyncConnectSocket(UniquePtr<TcpSocket> &socket,
                                      int timeout_ms);
 
-    void addAsyncConnectTimer(SocketId socket_id, int timeout_ms);
-    void removeAsyncConnectTimer(SocketId socket_id);
+    void addSocketTimer(SocketId socket_id, int timeout_ms,
+                        TimerCallback timer_cb);
+    void removeSocketTimer(SocketId socket_id);
 
     void onListenSocketRead(IODevice *io_device);
     void onAsyncConnectSocketWrite(IODevice *io_device);
@@ -166,6 +169,7 @@ private:
     bool sendMessage(TcpConnection *connection,
                      const char *buffer, size_t size,
                      const SendCompleteCallback &send_complete_cb);
+    void onSendMessageError(TimerId timer_id);
     void sendCompleteCloseCallback(TcpService *service, SocketId socket_id);
 
 private:
@@ -176,8 +180,8 @@ private:
     TcpSocketMap sockets_;
     TcpConnectionMap connections_;
     ContextMap contexts_;
-    SocketId_TimerId_Map async_connect_timers_;
-    TimerId_SocketId_Map async_connect_sockets_;
+    SocketId_TimerId_Map socket_to_timer_map_;
+    TimerId_SocketId_Map timer_to_socket_map_;
 
     NewConnectionCallback new_conn_cb_;
     RecvMessageCallback recv_message_cb_;
@@ -189,6 +193,7 @@ private:
     size_t conn_read_buffer_max_size_;
     size_t conn_write_buffer_init_size_;
     size_t conn_write_buffer_expand_size_;
+    size_t conn_write_buffer_max_size_;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -196,7 +201,8 @@ TcpService::Impl::Impl(TcpService *thiz, IOService &io_service) :
     thiz_(thiz), io_service_(&io_service),
     conn_read_buffer_init_size_(0), conn_read_buffer_expand_size_(0),
     conn_read_buffer_max_size_(0),
-    conn_write_buffer_init_size_(0), conn_write_buffer_expand_size_(0)
+    conn_write_buffer_init_size_(0), conn_write_buffer_expand_size_(0),
+    conn_write_buffer_max_size_(0)
 {
 }
 
@@ -318,7 +324,8 @@ TcpService::Impl::SocketId TcpService::Impl::buildAsyncConnectSocket(
 
     // add timeout timer
     if (timeout_ms > 0) {
-        addAsyncConnectTimer(socket_id, timeout_ms);
+        addSocketTimer(socket_id, timeout_ms, BRICKRED_BIND_MEM_FUNC(
+            &TcpService::Impl::onAsyncConnectTimeout, this));
     }
 
     // insert into socket map
@@ -331,25 +338,24 @@ TcpService::Impl::SocketId TcpService::Impl::buildAsyncConnectSocket(
     return socket_id;
 }
 
-void TcpService::Impl::addAsyncConnectTimer(SocketId socket_id, int timeout_ms)
+void TcpService::Impl::addSocketTimer(SocketId socket_id,
+    int timeout_ms, TimerCallback timer_cb)
 {
-    TimerId timer_id =
-        io_service_->startTimer(timeout_ms, BRICKRED_BIND_MEM_FUNC(
-            &TcpService::Impl::onAsyncConnectTimeout, this), 1);
-    async_connect_timers_[socket_id] = timer_id;
-    async_connect_sockets_[timer_id] = socket_id;
+    TimerId timer_id = io_service_->startTimer(timeout_ms, timer_cb, 1);
+    socket_to_timer_map_[socket_id] = timer_id;
+    timer_to_socket_map_[timer_id] = socket_id;
 }
 
-void TcpService::Impl::removeAsyncConnectTimer(SocketId socket_id)
+void TcpService::Impl::removeSocketTimer(SocketId socket_id)
 {
     SocketId_TimerId_Map::iterator iter =
-        async_connect_timers_.find(socket_id);
-    if (async_connect_timers_.end() == iter) {
+        socket_to_timer_map_.find(socket_id);
+    if (socket_to_timer_map_.end() == iter) {
         return;
     }
     TimerId timer_id = iter->second;
-    async_connect_timers_.erase(iter);
-    async_connect_sockets_.erase(timer_id);
+    socket_to_timer_map_.erase(iter);
+    timer_to_socket_map_.erase(timer_id);
 
     io_service_->stopTimer(timer_id);
 }
@@ -391,7 +397,7 @@ void TcpService::Impl::onAsyncConnectSocketWrite(IODevice *io_device)
     TcpSocket *socket = static_cast<TcpSocket *>(io_device);
 
     // remove timeout timer
-    removeAsyncConnectTimer(socket->getId());
+    removeSocketTimer(socket->getId());
 
     TcpConnectionMap::iterator iter = connections_.find(socket->getId());
     if (connections_.end() == iter) {
@@ -421,13 +427,13 @@ void TcpService::Impl::onAsyncConnectSocketWrite(IODevice *io_device)
 void TcpService::Impl::onAsyncConnectTimeout(TimerId timer_id)
 {
     TimerId_SocketId_Map::iterator iter =
-        async_connect_sockets_.find(timer_id);
-    if (async_connect_sockets_.end() == iter) {
+        timer_to_socket_map_.find(timer_id);
+    if (timer_to_socket_map_.end() == iter) {
         return;
     }
     SocketId socket_id = iter->second;
-    async_connect_sockets_.erase(iter);
-    async_connect_timers_.erase(socket_id);
+    timer_to_socket_map_.erase(iter);
+    socket_to_timer_map_.erase(socket_id);
 
     TcpSocketMap::iterator iter2 = sockets_.find(socket_id);
     if (sockets_.end() == iter2) {
@@ -734,6 +740,8 @@ bool TcpService::Impl::sendMessage(TcpConnection *connection,
         if (write_size < 0) {
             if (errno != EAGAIN) {
                 connection->setStatus(TcpConnection::Status::PENDING_ERROR);
+                addSocketTimer(socket->getId(), 0, BRICKRED_BIND_MEM_FUNC(
+                    &TcpService::Impl::onSendMessageError, this));
                 return false;
             }
         } else {
@@ -742,6 +750,16 @@ bool TcpService::Impl::sendMessage(TcpConnection *connection,
     }
 
     if (remain_size > 0) {
+        // check buffer overflow
+        if (conn_write_buffer_max_size_ > 0 &&
+            remain_size + write_buffer.readableBytes() >
+                conn_write_buffer_max_size_) {
+            connection->setStatus(TcpConnection::Status::PENDING_ERROR);
+            addSocketTimer(socket->getId(), 0, BRICKRED_BIND_MEM_FUNC(
+                &TcpService::Impl::onSendMessageError, this));
+            return false;
+        }
+
         // write to write buffer
         write_buffer.reserveWritableBytes(remain_size);
         ::memcpy(write_buffer.writeBegin(), buffer, remain_size);
@@ -758,6 +776,35 @@ bool TcpService::Impl::sendMessage(TcpConnection *connection,
     }
 
     return true;
+}
+
+void TcpService::Impl::onSendMessageError(TimerId timer_id)
+{
+    TimerId_SocketId_Map::iterator iter =
+        timer_to_socket_map_.find(timer_id);
+    if (timer_to_socket_map_.end() == iter) {
+        return;
+    }
+    SocketId socket_id = iter->second;
+    timer_to_socket_map_.erase(iter);
+    socket_to_timer_map_.erase(socket_id);
+
+    TcpSocketMap::iterator iter2 = sockets_.find(socket_id);
+    if (sockets_.end() == iter2) {
+        return;
+    }
+    TcpConnectionMap::iterator iter3 = connections_.find(socket_id);
+    if (connections_.end() == iter3) {
+        return;
+    }
+
+    TcpSocket *socket = iter2->second;
+    TcpConnection *connection = iter3->second;
+
+    connection->setStatus(TcpConnection::Status::PENDING_ERROR);
+    if (error_cb_) {
+        error_cb_(thiz_, socket->getId(), ENOBUFS);
+    }
 }
 
 void TcpService::Impl::sendCompleteCloseCallback(TcpService *service,
@@ -877,6 +924,11 @@ void TcpService::Impl::setSendBufferExpandSize(size_t size)
     conn_write_buffer_expand_size_ = size;
 }
 
+void TcpService::Impl::setSendBufferMaxSize(size_t size)
+{
+    conn_write_buffer_max_size_ = size;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 TcpService::Context::~Context()
 {
@@ -891,6 +943,7 @@ TcpService::TcpService(IOService &io_service) :
     setRecvBufferMaxSize();
     setSendBufferInitSize();
     setSendBufferExpandSize();
+    setSendBufferMaxSize();
 }
 
 TcpService::~TcpService()
@@ -1017,6 +1070,11 @@ void TcpService::setSendBufferInitSize(size_t size)
 void TcpService::setSendBufferExpandSize(size_t size)
 {
     pimpl_->setSendBufferExpandSize(size);
+}
+
+void TcpService::setSendBufferMaxSize(size_t size)
+{
+    pimpl_->setSendBufferMaxSize(size);
 }
 
 } // namespace brickred
