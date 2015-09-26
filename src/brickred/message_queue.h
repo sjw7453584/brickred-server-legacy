@@ -65,6 +65,11 @@ public:
         return queue_.peek(item);
     }
 
+    size_t size()
+    {
+        return queue_.size();
+    }
+
 private:
     void pipeReadCallback(IODevice *io_device)
     {
