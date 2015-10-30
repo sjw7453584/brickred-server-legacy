@@ -55,7 +55,8 @@ private:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-IOService::Impl::Impl() : epoll_fd_(-1), events_(32)
+IOService::Impl::Impl() :
+    quit_(false), epoll_fd_(-1), events_(32)
 {
 #ifndef BRICKRED_BUILD_DONT_HAVE_EPOLL_CREATE1
     epoll_fd_ = epoll_create1(EPOLL_CLOEXEC);

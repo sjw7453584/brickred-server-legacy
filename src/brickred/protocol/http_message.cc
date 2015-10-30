@@ -13,6 +13,7 @@ static const std::string s_cstr_http_1_0("HTTP/1.0");
 static const std::string s_cstr_unknown("UNKNOWN");
 
 HttpMessage::HttpMessage() :
+    message_type_(MessageType::UNKNOWN),
     version_(Version::UNKNOWN)
 {
 }
