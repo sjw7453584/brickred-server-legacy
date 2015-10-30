@@ -38,6 +38,7 @@ class TcpConnection {
 public:
     struct Status {
         enum type {
+            NONE,
             CONNECTING,
             CONNECTED,
             PEER_CLOSED,
@@ -86,6 +87,7 @@ TcpConnection::TcpConnection(TcpSocket *socket,
                              size_t write_buffer_init_size,
                              size_t write_buffer_expand_size) :
     socket_(socket),
+    status_(Status::NONE),
     read_buffer_(read_buffer_init_size, read_buffer_expand_size),
     write_buffer_(write_buffer_init_size, write_buffer_expand_size)
 {
