@@ -42,7 +42,7 @@ public:
             CONNECTING,
             CONNECTED,
             PEER_CLOSED,
-            PENDING_ERROR
+            PENDING_ERROR,
         };
     };
 
@@ -57,9 +57,12 @@ public:
 
     TcpSocket *getSocket() { return socket_; }
     Status::type getStatus() const { return status_; }
-    void setStatus(Status::type status) { status_ = status; }
+    int getErrorCode() const { return error_code_; }
     DynamicBuffer &getReadBuffer() { return read_buffer_; }
     DynamicBuffer &getWriteBuffer() { return write_buffer_; }
+
+    void setStatus(Status::type status) { status_ = status; }
+    void setError(int error_code);
 
     const SendCompleteCallback &getSendCompleteCallback() const {
         return send_complete_cb_;
@@ -75,6 +78,7 @@ private:
 
     TcpSocket *socket_;
     Status::type status_;
+    int error_code_;
     DynamicBuffer read_buffer_;
     DynamicBuffer write_buffer_;
     SendCompleteCallback send_complete_cb_;
@@ -88,9 +92,16 @@ TcpConnection::TcpConnection(TcpSocket *socket,
                              size_t write_buffer_expand_size) :
     socket_(socket),
     status_(Status::NONE),
+    error_code_(0),
     read_buffer_(read_buffer_init_size, read_buffer_expand_size),
     write_buffer_(write_buffer_init_size, write_buffer_expand_size)
 {
+}
+
+void TcpConnection::setError(int error_code)
+{
+    status_ = Status::PENDING_ERROR;
+    error_code_ = error_code;
 }
 
 } using namespace tcp_service_impl;
@@ -411,9 +422,9 @@ void TcpService::Impl::onAsyncConnectSocketWrite(IODevice *io_device)
 
     int socket_error = socket->getSocketError();
     if (socket_error != 0) {
-        connection->setStatus(TcpConnection::Status::PENDING_ERROR);
+        connection->setError(socket_error);
         if (error_cb_) {
-            error_cb_(thiz_, socket->getId(), socket_error);
+            error_cb_(thiz_, socket->getId(), connection->getErrorCode());
         }
     } else {
         socket->setReadCallback(BRICKRED_BIND_MEM_FUNC(
@@ -450,9 +461,9 @@ void TcpService::Impl::onAsyncConnectTimeout(TimerId timer_id)
     TcpConnection *connection = iter3->second;
 
     socket->close();
-    connection->setStatus(TcpConnection::Status::PENDING_ERROR);
+    connection->setError(ETIMEDOUT);
     if (error_cb_) {
-        error_cb_(thiz_, socket->getId(), ETIMEDOUT);
+        error_cb_(thiz_, socket->getId(), connection->getErrorCode());
     }
 }
 
@@ -495,9 +506,9 @@ void TcpService::Impl::onSocketRead(IODevice *io_device)
             if (EAGAIN == errno) {
                 break;
             } else {
-                connection->setStatus(TcpConnection::Status::PENDING_ERROR);
+                connection->setError(errno);
                 if (error_cb_) {
-                    error_cb_(thiz_, socket_id, errno);
+                    error_cb_(thiz_, socket_id, connection->getErrorCode());
                 }
                 return;
             }
@@ -543,9 +554,9 @@ void TcpService::Impl::onSocketWrite(IODevice *io_device)
                                   write_buffer.readableBytes());
     if (write_size < 0) {
         if (errno != EAGAIN) {
-            connection->setStatus(TcpConnection::Status::PENDING_ERROR);
+            connection->setError(errno);
             if (error_cb_) {
-                error_cb_(thiz_, socket->getId(), errno);
+                error_cb_(thiz_, socket->getId(), connection->getErrorCode());
             }
             return;
         }
@@ -577,11 +588,11 @@ void TcpService::Impl::onSocketError(IODevice *io_device)
 
     int socket_error = socket->getSocketError();
     if (0 == socket_error) {
-      socket_error = errno;
+        socket_error = errno;
     }
-    connection->setStatus(TcpConnection::Status::PENDING_ERROR);
+    connection->setError(socket_error);
     if (error_cb_) {
-        error_cb_(thiz_, socket->getId(), socket_error);
+        error_cb_(thiz_, socket->getId(), connection->getErrorCode());
     }
 }
 
@@ -741,7 +752,7 @@ bool TcpService::Impl::sendMessage(TcpConnection *connection,
         int write_size = socket->send(buffer, size);
         if (write_size < 0) {
             if (errno != EAGAIN) {
-                connection->setStatus(TcpConnection::Status::PENDING_ERROR);
+                connection->setError(errno);
                 addSocketTimer(socket->getId(), 0, BRICKRED_BIND_MEM_FUNC(
                     &TcpService::Impl::onSendMessageError, this));
                 return false;
@@ -756,7 +767,7 @@ bool TcpService::Impl::sendMessage(TcpConnection *connection,
         if (conn_write_buffer_max_size_ > 0 &&
             remain_size + write_buffer.readableBytes() >
                 conn_write_buffer_max_size_) {
-            connection->setStatus(TcpConnection::Status::PENDING_ERROR);
+            connection->setError(ENOBUFS);
             addSocketTimer(socket->getId(), 0, BRICKRED_BIND_MEM_FUNC(
                 &TcpService::Impl::onSendMessageError, this));
             return false;
@@ -803,9 +814,8 @@ void TcpService::Impl::onSendMessageError(TimerId timer_id)
     TcpSocket *socket = iter2->second;
     TcpConnection *connection = iter3->second;
 
-    connection->setStatus(TcpConnection::Status::PENDING_ERROR);
     if (error_cb_) {
-        error_cb_(thiz_, socket->getId(), ENOBUFS);
+        error_cb_(thiz_, socket->getId(), connection->getErrorCode());
     }
 }
 
