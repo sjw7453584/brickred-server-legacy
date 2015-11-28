@@ -168,7 +168,7 @@ bool TcpSocket::shutdownRead()
     return true;
 }
 
-bool TcpSocket::shutdonwWrite()
+bool TcpSocket::shutdownWrite()
 {
     if (::shutdown(fd_, SHUT_WR) != 0) {
         return false;

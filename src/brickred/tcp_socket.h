@@ -29,7 +29,7 @@ public:
     int send(const char *buffer, size_t size);
 
     bool shutdownRead();
-    bool shutdonwWrite();
+    bool shutdownWrite();
     bool shutdownBoth();
 
     // -*- tcp options -*-
