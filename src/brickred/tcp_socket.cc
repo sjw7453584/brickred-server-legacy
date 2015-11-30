@@ -8,8 +8,6 @@
 #include <netinet/tcp.h>
 #include <cerrno>
 
-#include <brickred/socket_address.h>
-
 namespace brickred {
 
 TcpSocket::TcpSocket()
