@@ -140,7 +140,7 @@ int TcpSocket::readableBytes() const
 {
     int readable_bytes;
 
-    if (ioctl(fd_, FIONREAD, &readable_bytes) == -1) {
+    if (::ioctl(fd_, FIONREAD, &readable_bytes) == -1) {
       return -1;
     }
 
