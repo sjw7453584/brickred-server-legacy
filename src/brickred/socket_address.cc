@@ -12,46 +12,46 @@ namespace brickred {
 class SocketAddress::Impl {
 public:
     typedef SocketAddress::Protocol Protocol;
-    typedef union native_address_tag {
-        struct sockaddr_in ipv4_addr_;
-        struct sockaddr_in6 ipv6_addr_;
-    } NativeAddress;
 
     Impl();
     Impl(const std::string &ip, uint16_t port);
     ~Impl();
 
-    const std::string &getIp() const { return ip_; }
-    uint16_t getPort() const { return port_; }
+    const std::string &getIp() const;
+    uint16_t getPort() const;
     Protocol::type getProtocol() const;
-    void setIp(const std::string &ip);
-    void setPort(uint16_t port);
+    void setAddress(const std::string &ip, uint16_t port);
 
     const void *getNativeAddress() const;
-    size_t getNativeAddressSize() const { return native_addr_size_; }
+    size_t getNativeAddressSize() const;
     bool setNativeAddress(const void *native_addr);
 
 public:
-    void translateToNativeAddress() const;
+    void translateNativeAddressToAddress() const;
+    void translateAddressToNativeAddress() const;
 
 private:
-    std::string ip_;
-    uint16_t port_;
+    mutable bool has_addr_;
+    mutable std::string ip_;
+    mutable uint16_t port_;
+
+    mutable bool has_native_addr_;
     mutable Protocol::type protocol_;
-    mutable NativeAddress native_addr_;
+    mutable struct sockaddr native_addr_;
     mutable size_t native_addr_size_;
-    mutable bool translated_;
 };
 
 SocketAddress::Impl::Impl() :
-    port_(0), protocol_(Protocol::UNKNOWN),
-    native_addr_size_(0), translated_(false)
+    has_addr_(false), port_(0),
+    has_native_addr_(false), protocol_(Protocol::UNKNOWN),
+    native_addr_size_(0)
 {
 }
 
 SocketAddress::Impl::Impl(const std::string &ip, uint16_t port) :
-    ip_(ip), port_(port), protocol_(Protocol::UNKNOWN),
-    native_addr_size_(0), translated_(false)
+    has_addr_(true), ip_(ip), port_(port),
+    has_native_addr_(false), protocol_(Protocol::UNKNOWN),
+    native_addr_size_(0)
 {
 }
 
@@ -59,113 +59,151 @@ SocketAddress::Impl::~Impl()
 {
 }
 
+const std::string &SocketAddress::Impl::getIp() const
+{
+    if (!has_addr_ && has_native_addr_) {
+        translateNativeAddressToAddress();
+    }
+
+    return ip_;
+}
+
+uint16_t SocketAddress::Impl::getPort() const
+{
+    if (!has_addr_ && has_native_addr_) {
+        translateNativeAddressToAddress();
+    }
+
+    return port_;
+}
+
 SocketAddress::Impl::Protocol::type SocketAddress::Impl::getProtocol() const
 {
-    if (!translated_) {
-        translateToNativeAddress();
+    if (!has_native_addr_ && has_addr_) {
+        translateAddressToNativeAddress();
     }
 
     return protocol_;
 }
 
-void SocketAddress::Impl::setIp(const std::string &ip)
+void SocketAddress::Impl::setAddress(const std::string &ip, uint16_t port)
 {
     ip_ = ip;
-    translated_ = false;
-}
-
-void SocketAddress::Impl::setPort(uint16_t port)
-{
     port_ = port;
+
+    has_addr_ = true;
+    has_native_addr_ = false;
 }
 
 const void *SocketAddress::Impl::getNativeAddress() const
 {
-    if (!translated_) {
-        translateToNativeAddress();
+    if (!has_native_addr_ && has_addr_) {
+        translateAddressToNativeAddress();
     }
 
-    if (Protocol::IP_V4 == protocol_) {
-        return &native_addr_.ipv4_addr_;
-    } else if (Protocol::IP_V6 == protocol_) {
-        return &native_addr_.ipv6_addr_;
-    } else {
+    if (Protocol::UNKNOWN == protocol_) {
         return NULL;
     }
+
+    return &native_addr_;
+}
+
+size_t SocketAddress::Impl::getNativeAddressSize() const
+{
+    if (!has_native_addr_ && has_addr_) {
+        translateAddressToNativeAddress();
+    }
+
+    return native_addr_size_;
 }
 
 bool SocketAddress::Impl::setNativeAddress(const void *native_addr)
 {
     struct sockaddr *sock_addr = (struct sockaddr *)native_addr;
-    char ip[1024];
-    uint64_t port = 0;
-    Protocol::type protocol = Protocol::UNKNOWN;
-    size_t native_addr_size = 0;
-
     if (AF_INET == sock_addr->sa_family) {
-        struct sockaddr_in *sock_addr4 = (struct sockaddr_in *)native_addr;
-        if (::inet_ntop(AF_INET, &sock_addr4->sin_addr,
-                        ip, sizeof(ip)) == NULL) {
-            return false;
-        }
-        port = ntohs(sock_addr4->sin_port);
-        protocol = Protocol::IP_V4;
-        native_addr_size = sizeof(struct sockaddr_in);
+        protocol_ = Protocol::IP_V4;
+        native_addr_size_ = sizeof(struct sockaddr_in);
 
     } else if (AF_INET6 == sock_addr->sa_family) {
-        struct sockaddr_in6 *sock_addr6 = (struct sockaddr_in6 *)native_addr;
-        if (::inet_ntop(AF_INET6, &sock_addr6->sin6_addr,
-                        ip, sizeof(ip)) == NULL) {
-            return false;
-        }
-        port = ntohs(sock_addr6->sin6_port);
-        protocol = Protocol::IP_V6;
-        native_addr_size = sizeof(struct sockaddr_in6);
+        protocol_ = Protocol::IP_V6;
+        native_addr_size_ = sizeof(struct sockaddr_in6);
 
     } else {
         return false;
     }
+    memcpy(&native_addr_, native_addr, sizeof(native_addr_));
 
-    ip_ = ip;
-    port_ = port;
-    protocol_ = protocol;
-    native_addr_size_ = native_addr_size;
-    memcpy(&native_addr_, native_addr, native_addr_size);
-    translated_ = true;
+    has_addr_ = false;
+    has_native_addr_ = true;
 
     return true;
 }
 
-void SocketAddress::Impl::translateToNativeAddress() const
+void SocketAddress::Impl::translateNativeAddressToAddress() const
 {
-    translated_ = true;
+    ip_.clear();
+    port_ = 0;
+
+    if (AF_INET == native_addr_.sa_family) {
+        struct sockaddr_in *sock_addr4 = (struct sockaddr_in *)&native_addr_;
+        char ip[32];
+        if (::inet_ntop(AF_INET, &sock_addr4->sin_addr,
+                        ip, sizeof(ip)) == NULL) {
+            return;
+        }
+        ip_ = ip;
+        port_ = ntohs(sock_addr4->sin_port);
+
+    } else if (AF_INET6 == native_addr_.sa_family) {
+        struct sockaddr_in6 *sock_addr6 = (struct sockaddr_in6 *)&native_addr_;
+        char ip[128];
+        if (::inet_ntop(AF_INET6, &sock_addr6->sin6_addr,
+                        ip, sizeof(ip)) == NULL) {
+            return;
+        }
+        ip_ = ip;
+        port_ = ntohs(sock_addr6->sin6_port);
+
+    } else {
+        return;
+    }
+
+    has_addr_ = true;
+}
+
+void SocketAddress::Impl::translateAddressToNativeAddress() const
+{
+    ::memset(&native_addr_, 0, sizeof(native_addr_));
+    protocol_ = Protocol::UNKNOWN;
+    native_addr_size_ = 0;
 
     if (ip_.find(".") != ip_.npos) {
         // try ipv4 convert
-        ::memset(&native_addr_.ipv4_addr_.sin_addr, 0,
-                 sizeof(struct sockaddr_in));
-        if (::inet_pton(AF_INET, ip_.c_str(),
-                        &native_addr_.ipv4_addr_.sin_addr) != 1) {
+        struct sockaddr_in *sock_addr4 = (struct sockaddr_in *)&native_addr_;
+        if (::inet_pton(AF_INET, ip_.c_str(), &sock_addr4->sin_addr) != 1) {
             return;
         }
-        native_addr_.ipv4_addr_.sin_family = AF_INET;
-        native_addr_.ipv4_addr_.sin_port = htons(port_);
-        native_addr_size_ = sizeof(struct sockaddr_in);
+        sock_addr4->sin_family = AF_INET;
+        sock_addr4->sin_port = htons(port_);
         protocol_ = Protocol::IP_V4;
+        native_addr_size_ = sizeof(struct sockaddr_in);
 
     } else if (ip_.find(":") != ip_.npos) {
         // try ipv6 convert
-        ::memset(&native_addr_.ipv6_addr_.sin6_addr, 0,
-                 sizeof(struct sockaddr_in6));
-        if (::inet_pton(AF_INET6, ip_.c_str(),
-                        &native_addr_.ipv6_addr_.sin6_addr) != 1) {
+        struct sockaddr_in6 *sock_addr6 = (struct sockaddr_in6 *)&native_addr_;
+        if (::inet_pton(AF_INET6, ip_.c_str(), &sock_addr6->sin6_addr) != 1) {
             return;
         }
-        native_addr_.ipv6_addr_.sin6_family = AF_INET6;
-        native_addr_.ipv6_addr_.sin6_port = htons(port_);
-        native_addr_size_ = sizeof(struct sockaddr_in6);
+        sock_addr6->sin6_family = AF_INET6;
+        sock_addr6->sin6_port = htons(port_);
         protocol_ = Protocol::IP_V6;
+        native_addr_size_ = sizeof(struct sockaddr_in6);
+
+    } else {
+        return;
     }
+
+    has_native_addr_ = true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -214,14 +252,9 @@ SocketAddress::Protocol::type SocketAddress::getProtocol() const
     return pimpl_->getProtocol();
 }
 
-void SocketAddress::setIp(const std::string &ip)
+void SocketAddress::setAddress(const std::string &ip, uint16_t port)
 {
-    return pimpl_->setIp(ip);
-}
-
-void SocketAddress::setPort(uint16_t port)
-{
-    return pimpl_->setPort(port);
+    return pimpl_->setAddress(ip, port);
 }
 
 const void *SocketAddress::getNativeAddress() const
@@ -283,7 +316,7 @@ void SocketAddress::ipV4BinToText(uint32_t binary, std::string *text)
     ::memset(&addr, 0, sizeof(addr));
     addr.s_addr = htonl(binary);
 
-    char ip[1024];
+    char ip[32];
     if (::inet_ntop(AF_INET, &addr, ip, sizeof(ip)) == NULL) {
         return;
     }
@@ -321,7 +354,7 @@ void SocketAddress::ipV6BinToText(const uint8_t binary[16], std::string *text)
         addr.s6_addr[i] = binary[i];
     }
 
-    char ip[1024];
+    char ip[128];
     if (::inet_ntop(AF_INET, &addr, ip, sizeof(ip)) == NULL) {
         return;
     }

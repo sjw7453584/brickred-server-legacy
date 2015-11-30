@@ -48,8 +48,7 @@ public:
             return NULL;
         }
 
-        addr_.setIp(SocketAddress::ipV4BinToText(ip_));
-        addr_.setPort(port_);
+        addr_.setAddress(SocketAddress::ipV4BinToText(ip_), port_);
 
         addPort();
 

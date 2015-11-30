@@ -30,8 +30,7 @@ public:
     const std::string &getIp() const;
     uint16_t getPort() const;
     Protocol::type getProtocol() const;
-    void setIp(const std::string &ip);
-    void setPort(uint16_t port);
+    void setAddress(const std::string &ip, uint16_t port);
 
     const void *getNativeAddress() const;
     size_t getNativeAddressSize() const;
