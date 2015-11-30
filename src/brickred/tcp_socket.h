@@ -16,8 +16,8 @@ public:
 
     bool open(SocketAddress::Protocol::type protocol);
     void close();
-    bool bind(const SocketAddress &addr);
     bool connect(const SocketAddress &addr);
+    bool bind(const SocketAddress &addr);
     bool listen(int backlog);
     bool accept(TcpSocket *peer);
 
