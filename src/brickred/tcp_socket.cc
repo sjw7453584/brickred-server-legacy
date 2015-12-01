@@ -116,9 +116,9 @@ bool TcpSocket::accept(TcpSocket *peer)
 
 bool TcpSocket::getLocalAddress(SocketAddress *addr) const
 {
-    struct sockaddr sock_addr;
+    struct sockaddr_storage sock_addr;
     socklen_t addr_len = sizeof(sock_addr);
-    if (::getsockname(fd_, &sock_addr, &addr_len) != 0) {
+    if (::getsockname(fd_, (struct sockaddr *)&sock_addr, &addr_len) != 0) {
         return false;
     }
 
@@ -127,7 +127,7 @@ bool TcpSocket::getLocalAddress(SocketAddress *addr) const
 
 bool TcpSocket::getPeerAddress(SocketAddress *addr) const
 {
-    struct sockaddr sock_addr;
+    struct sockaddr_storage sock_addr;
     socklen_t addr_len = sizeof(sock_addr);
     if (::getpeername(fd_, (struct sockaddr *)&sock_addr, &addr_len) != 0) {
         return false;
