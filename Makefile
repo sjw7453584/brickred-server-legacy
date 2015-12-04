@@ -66,6 +66,10 @@ ifeq ($(BR_BUILD_TEST), yes)
 	@$(MAKE) -f mak/test/url_encode.mak $@
 	@$(call ECHO, "[build url_decode]")
 	@$(MAKE) -f mak/test/url_decode.mak $@
+	@$(call ECHO, "[build udp_echo_client]")
+	@$(MAKE) -f mak/test/udp_echo_client.mak $@
+	@$(call ECHO, "[build udp_echo_server]")
+	@$(MAKE) -f mak/test/udp_echo_server.mak $@
 	@$(call ECHO, "[build ws_echo_client]")
 	@$(MAKE) -f mak/test/ws_echo_client.mak $@
 	@$(call ECHO, "[build ws_echo_server]")
