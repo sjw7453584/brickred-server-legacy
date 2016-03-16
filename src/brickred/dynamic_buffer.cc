@@ -1,6 +1,5 @@
 #include <brickred/dynamic_buffer.h>
 
-#include <arpa/inet.h>
 #include <cstring>
 #include <algorithm>
 
@@ -153,7 +152,8 @@ bool DynamicBuffer::peekInt16(uint16_t &v, size_t offset)
     }
     const char *p = readBegin() + offset;
 
-    v = ntohs(*(const uint16_t *)p);
+    v = (uint16_t)(*(const uint8_t *)(p + 1)) |
+        (uint16_t)(*(const uint8_t *)(p)) << 8;
 
     return true;
 }
@@ -189,7 +189,10 @@ bool DynamicBuffer::peekInt32(uint32_t &v, size_t offset)
     }
     const char *p = readBegin() + offset;
 
-    v = ntohl(*(const uint32_t *)p);
+    v = (uint32_t)(*(const uint8_t *)(p + 3)) |
+        (uint32_t)(*(const uint8_t *)(p + 2)) << 8 |
+        (uint32_t)(*(const uint8_t *)(p + 1)) << 16 |
+        (uint32_t)(*(const uint8_t *)(p)) << 24;
 
     return true;
 }
@@ -213,8 +216,14 @@ bool DynamicBuffer::peekInt64(uint64_t &v, size_t offset)
     }
     const char *p = readBegin() + offset;
 
-    v = (uint64_t)ntohl(*(const uint32_t *)(p + 4)) +
-        ((uint64_t)ntohl(*(const uint32_t *)p) << 32);
+    v = (uint64_t)(*(const uint8_t *)(p + 7)) |
+        (uint64_t)(*(const uint8_t *)(p + 6)) << 8 |
+        (uint64_t)(*(const uint8_t *)(p + 5)) << 16 |
+        (uint64_t)(*(const uint8_t *)(p + 4)) << 24 |
+        (uint64_t)(*(const uint8_t *)(p + 3)) << 32 |
+        (uint64_t)(*(const uint8_t *)(p + 2)) << 40 |
+        (uint64_t)(*(const uint8_t *)(p + 1)) << 48 |
+        (uint64_t)(*(const uint8_t *)(p)) << 56;
 
     return true;
 }
@@ -331,7 +340,8 @@ void DynamicBuffer::writeInt16(uint16_t v)
 {
     reserveWritableBytes(2);
     char *p = writeBegin();
-    *(uint16_t *)p = htons((uint16_t)v);
+    *(uint8_t *)(p) = (uint8_t)(v >> 8);
+    *(uint8_t *)(p + 1) = (uint8_t)(v);
     write(2);
 }
 
@@ -339,7 +349,10 @@ void DynamicBuffer::writeInt32(uint32_t v)
 {
     reserveWritableBytes(4);
     char *p = writeBegin();
-    *(uint32_t *)p = htonl((uint32_t)v);
+    *(uint8_t *)(p) = (uint8_t)(v >> 24);
+    *(uint8_t *)(p + 1) = (uint8_t)(v >> 16);
+    *(uint8_t *)(p + 2) = (uint8_t)(v >> 8);
+    *(uint8_t *)(p + 3) = (uint8_t)(v);
     write(4);
 }
 
@@ -347,8 +360,14 @@ void DynamicBuffer::writeInt64(uint64_t v)
 {
     reserveWritableBytes(8);
     char *p = writeBegin();
-    *(uint32_t *)p = htonl((uint32_t)(v >> 32));
-    *(uint32_t *)(p + 4) = htonl((uint32_t)(v & 0xffffffff));
+    *(uint8_t *)(p) = (uint8_t)(v >> 56);
+    *(uint8_t *)(p + 1) = (uint8_t)(v >> 48);
+    *(uint8_t *)(p + 2) = (uint8_t)(v >> 40);
+    *(uint8_t *)(p + 3) = (uint8_t)(v >> 32);
+    *(uint8_t *)(p + 4) = (uint8_t)(v >> 24);
+    *(uint8_t *)(p + 5) = (uint8_t)(v >> 16);
+    *(uint8_t *)(p + 6) = (uint8_t)(v >> 8);
+    *(uint8_t *)(p + 7) = (uint8_t)(v);
     write(8);
 }
 

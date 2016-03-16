@@ -42,7 +42,7 @@ static void sha1Processblock(uint32_t *hash, const uint8_t *work_block)
 
     // init arary w
     for (int i = 0; i < 16; ++i) {
-        w[i] = htonl(((uint32_t *)work_block)[i]);
+        w[i] = ntohl(((uint32_t *)work_block)[i]);
     }
     for (int i = 16; i < 80; ++i) {
         w[i] = ROTL32(w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16], 1);
