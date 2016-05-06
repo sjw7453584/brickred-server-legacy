@@ -40,7 +40,7 @@ static int processLongOption(
     const std::string &arg, const std::string &next_param)
 {
     std::vector<std::string> long_opt_parts;
-    string_util::split(arg.c_str() + 2, "=", &long_opt_parts, 1);
+    string_util::split(arg.c_str() + 2, "=", &long_opt_parts, 2);
     const std::string &opt = long_opt_parts[0];
 
     // check exists
