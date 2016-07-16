@@ -20,7 +20,7 @@ public:
     ~TimerHeap();
 
     int64_t getNextTimeoutMillisecond(const Timestamp &now) const;
-    TimerId addTimer(const Timestamp &now, int timeout_ms,
+    TimerId addTimer(const Timestamp &now, int64_t timeout_ms,
                      const TimerCallback &timer_cb,
                      int call_times = -1);
     void removeTimer(TimerId timer_id);

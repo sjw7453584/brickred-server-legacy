@@ -35,7 +35,7 @@ public:
     typedef TimerHeap::TimerId TimerId;
     typedef TimerHeap::TimerCallback TimerCallback;
 
-    explicit Timer(TimerId id, const Timestamp &timestamp, int timeout,
+    explicit Timer(TimerId id, const Timestamp &timestamp, int64_t timeout,
                    const TimerCallback &timer_cb, int call_times);
     ~Timer() {}
 
@@ -52,14 +52,14 @@ public:
 private:
     TimerId id_;
     Timestamp timestamp_;
-    int timeout_;
+    int64_t timeout_;
     TimerCallback timer_cb_;
     int call_times_;
     int heap_pos_;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-Timer::Timer(TimerId id, const Timestamp &timestamp, int timeout,
+Timer::Timer(TimerId id, const Timestamp &timestamp, int64_t timeout,
              const TimerCallback &timer_cb, int call_times) :
     id_(id), timestamp_(timestamp), timeout_(timeout),
     timer_cb_(timer_cb), call_times_(call_times),
@@ -81,7 +81,7 @@ public:
     ~Impl();
 
     int64_t getNextTimeoutMillisecond(const Timestamp &now) const;
-    TimerId addTimer(const Timestamp &now, int timeout_ms,
+    TimerId addTimer(const Timestamp &now, int64_t timeout_ms,
                      const TimerCallback &timer_cb,
                      int call_times = -1);
     void removeTimer(TimerId timer_id);
@@ -123,9 +123,10 @@ int64_t TimerHeap::Impl::getNextTimeoutMillisecond(const Timestamp &now) const
 }
 
 TimerHeap::Impl::TimerId TimerHeap::Impl::addTimer(const Timestamp &now,
-    int timeout_ms, const TimerCallback &timer_cb, int call_times)
+    int64_t timeout_ms, const TimerCallback &timer_cb, int call_times)
 {
     TimerId timer_id = timer_id_allocator_.getId();
+    timeout_ms = std::max((int64_t)0, timeout_ms);
     UniquePtr<Timer> timer(new Timer(timer_id,
                                      now + timeout_ms,
                                      timeout_ms,
@@ -185,12 +186,14 @@ void TimerHeap::Impl::checkTimeout(const Timestamp &now)
         // remove from timer min heap
         minHeapErase(timer);
 
-        if (timer->getCallTimes() - 1 == 0) {
+        if (timer->getCallTimes() == 1) {
             // remove from timer map
             timers_.erase(timer_id);
             delete timer;
         } else {
-            timer->decCallTimes();
+            if (timer->getCallTimes() > 0) {
+                timer->decCallTimes();
+            }
             timer->getTimestamp() += timer->getTimeout();
             // insert into timer min heap again
             minHeapInsert(timer);
@@ -292,7 +295,7 @@ int64_t TimerHeap::getNextTimeoutMillisecond(const Timestamp &now) const
 }
 
 TimerHeap::TimerId TimerHeap::addTimer(const Timestamp &now,
-    int timeout_ms, const TimerCallback &timer_cb, int call_times)
+    int64_t timeout_ms, const TimerCallback &timer_cb, int call_times)
 {
     return pimpl_->addTimer(now, timeout_ms, timer_cb, call_times);
 }
