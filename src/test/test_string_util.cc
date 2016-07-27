@@ -9,6 +9,7 @@ using namespace brickred;
 
 int main(void)
 {
+    // split
     char str[] = ";1;2;3;";
     std::vector<std::string> result;
 
@@ -18,6 +19,12 @@ int main(void)
         std::cout << result[i] << std::endl;
     }
 
+    // replace
+    std::cout << string_util::replace("1;1;1", "1", "2", 1) << std::endl;
+    std::cout << string_util::replace("1;1;1", "1", "2", 2) << std::endl;
+    std::cout << string_util::replace("1;1;1", "1", "2") << std::endl;
+
+    // string hash function
     __gnu_cxx::hash_map<std::string,
                         std::string,
                         string_util::Hash> m;

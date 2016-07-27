@@ -107,6 +107,35 @@ std::string toLower(const std::string &str)
     return lower;
 }
 
+std::string replace(const std::string &str,
+                    const std::string &search,
+                    const std::string &replace,
+                    int max_replace)
+{
+    std::string ret(str);
+
+    if (0 == max_replace) {
+        return ret;
+    }
+
+    size_t pos = 0;
+    int count = 0;
+    for (;;) {
+        pos = ret.find(search, pos);
+        if (std::string::npos == pos) {
+            break;
+        }
+        ret.replace(pos, search.length(), replace);
+        pos += replace.length();
+
+        if (max_replace > 0 && ++count >= max_replace) {
+            break;
+        }
+    }
+
+    return ret;
+}
+
 std::string toString(int i)
 {
     char buffer[32];

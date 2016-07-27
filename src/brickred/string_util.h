@@ -18,6 +18,10 @@ std::string rtrim(const std::string &str, const char *ws = " \t");
 std::string trim(const std::string &str, const char *ws = " \t");
 std::string toUpper(const std::string &str);
 std::string toLower(const std::string &str);
+std::string replace(const std::string &str,
+                    const std::string &search,
+                    const std::string &replace,
+                    int max_replace = -1);
 
 std::string toString(int i);
 std::string toString(long l);
