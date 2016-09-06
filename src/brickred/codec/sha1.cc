@@ -27,7 +27,6 @@ void Sha1::reset()
     message_size_ = 0;
 }
 
-
 static void sha1Processblock(uint32_t *hash, const uint8_t *work_block)
 {
     #define ROTL32(_dword, _n) ((_dword) << (_n) ^ ((_dword) >> (32 - (_n))))
