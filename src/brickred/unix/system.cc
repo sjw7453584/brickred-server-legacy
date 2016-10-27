@@ -22,8 +22,6 @@ bool daemon(bool change_dir, bool close_stdio)
         return false;
     }
 
-    umask(0);
-
     if (change_dir) {
         if (::chdir("/") != 0) {
             return false;
