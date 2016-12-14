@@ -11,9 +11,9 @@
 namespace brickred {
 
 class DynamicBuffer;
+class IOService;
 class SocketAddress;
 class TcpSocket;
-class IOService;
 
 class TcpService {
 public:

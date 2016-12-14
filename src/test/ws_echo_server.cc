@@ -1,4 +1,5 @@
 #include <cerrno>
+#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -19,6 +20,26 @@ class WsEchoServer {
 public:
     class Context : public TcpService::Context {
     public:
+        Context(TcpService *tcp_service,
+                TcpService::SocketId socket_id) :
+            tcp_service_(tcp_service),
+            socket_id_(socket_id)
+        {
+        }
+
+        WebSocketProtocol &getProtocol()
+        {
+            return protocol_;
+        }
+
+        void sendMessage(const char *buffer, size_t size)
+        {
+            tcp_service_->sendMessage(socket_id_, buffer, size);
+        }
+
+    private:
+        TcpService *tcp_service_;
+        TcpService::SocketId socket_id_;
         WebSocketProtocol protocol_;
     };
 
@@ -59,9 +80,11 @@ public:
         ::printf("[new connection][%d] %lx from %lx\n",
                  ++conn_num, socket_id, from_socket_id);
 
-        UniquePtr<Context> context(new Context());
-        context->protocol_.setHandshakeHeader("Date", "");
-        context->protocol_.startAsServer(*service, socket_id);
+        UniquePtr<Context> context(new Context(service, socket_id));
+        context->getProtocol().setOutputCallback(BRICKRED_BIND_MEM_FUNC(
+            &WsEchoServer::Context::sendMessage, context.get()));
+        context->getProtocol().setHandshakeHeader("Date", "");
+        context->getProtocol().startAsServer();
 
         if (service->setContext(socket_id, context.get()) == false) {
             service->closeSocket(socket_id);
@@ -82,7 +105,7 @@ public:
 
         for (;;) {
             WebSocketProtocol::RetCode::type ret =
-                context->protocol_.recvMessage(buffer);
+                context->getProtocol().recvMessage(buffer);
             if (WebSocketProtocol::RetCode::WAITING_MORE_DATA == ret) {
                 return;
 
@@ -98,7 +121,8 @@ public:
 
             } else if (WebSocketProtocol::RetCode::MESSAGE_READY == ret) {
                 DynamicBuffer message;
-                if (context->protocol_.retrieveMessage(&message) == false) {
+                if (context->getProtocol().retrieveMessage(
+                        &message) == false) {
                     ::printf("[error] %lx: retrieve message failed\n",
                              socket_id);
                     service->closeSocket(socket_id);
@@ -106,8 +130,8 @@ public:
                 }
                 ::printf("[recieve message] %lx: %zd bytes\n",
                        socket_id, message.readableBytes());
-                context->protocol_.sendMessage(message.readBegin(),
-                                               message.readableBytes());
+                context->getProtocol().sendMessage(
+                    message.readBegin(), message.readableBytes());
             }
         }
     }

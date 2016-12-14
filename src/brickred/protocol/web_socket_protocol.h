@@ -2,17 +2,17 @@
 #define BRICKRED_PROTOCOL_WEB_SOCKET_PROTOCOL_H
 
 #include <cstddef>
-#include <map>
 #include <string>
 
 #include <brickred/class_util.h>
-#include <brickred/string_util.h>
-#include <brickred/tcp_service.h>
+#include <brickred/function.h>
 #include <brickred/unique_ptr.h>
 
 namespace brickred {
 
+class DynamicBuffer;
 class Random;
+class SocketAddress;
 
 } // namespace brickred
 
@@ -46,29 +46,28 @@ public:
         };
     };
 
-    typedef std::map<std::string, std::string,
-                     string_util::CaseInsensitiveLess> HeaderMap;
+    typedef Function<void (const char *, size_t)> OutputCallback;
 
     WebSocketProtocol();
     ~WebSocketProtocol();
 
     Status::type getStatus() const;
+
+    void setOutputCallback(const OutputCallback &output_cb);
     void setHandshakeHeader(const std::string &key, const std::string &value);
 
     // send a handshake to the server
-    bool startAsClient(TcpService &tcp_service,
-                       TcpService::SocketId socket_id,
+    bool startAsClient(const SocketAddress &peer_addr,
                        Random &random_generator,
                        const char *request_uri = "/");
     // wait a handshake from the client
-    bool startAsServer(TcpService &tcp_service,
-                       TcpService::SocketId socket_id);
+    bool startAsServer();
 
     RetCode::type recvMessage(DynamicBuffer *buffer);
     bool retrieveMessage(DynamicBuffer *message);
-    bool sendMessage(const char *buffer, size_t size);
-    bool sendCloseFrame();
-    bool sendPingFrame();
+    void sendMessage(const char *buffer, size_t size);
+    void sendCloseFrame();
+    void sendPingFrame();
 
 private:
     BRICKRED_NONCOPYABLE(WebSocketProtocol)

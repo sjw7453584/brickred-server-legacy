@@ -31,6 +31,11 @@ public:
     {
     }
 
+    void sendMessage(const char *buffer, size_t size)
+    {
+        tcp_service_.sendMessage(socket_id_, buffer, size);
+    }
+
     bool echo(const SocketAddress &addr, const std::string &host,
               const std::string &message)
     {
@@ -43,9 +48,10 @@ public:
 
         message_ = message;
 
+        protocol_.setOutputCallback(BRICKRED_BIND_MEM_FUNC(
+            &WsEchoClient::sendMessage, this));
         protocol_.setHandshakeHeader("Host", host);
-        protocol_.startAsClient(tcp_service_, socket_id_,
-                                random_generator_);
+        protocol_.startAsClient(addr, random_generator_);
 
         io_service_.loop();
 

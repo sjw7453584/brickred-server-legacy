@@ -21,6 +21,7 @@ class HttpProtocol::Impl {
 public:
     typedef HttpProtocol::Status Status;
     typedef HttpProtocol::RetCode RetCode;
+    typedef HttpProtocol::OutputCallback OutputCallback;
     typedef int (HttpProtocol::Impl::*StatusHandler)(DynamicBuffer *);
 
     Impl();
@@ -28,9 +29,13 @@ public:
     void reset();
 
     Status::type getStatus() const { return status_; }
+
+    void setOutputCallback(const OutputCallback &output_cb);
+
     RetCode::type recvMessage(DynamicBuffer *buffer);
     bool retrieveRequest(HttpRequest *request);
     bool retrieveResponse(HttpResponse *response);
+    void sendMessage(const HttpMessage &message);
 
 public:
     int readStartLine(DynamicBuffer *buffer);
@@ -42,6 +47,7 @@ private:
 
 private:
     Status::type status_;
+    OutputCallback output_cb_;
     HttpMessage *message_;
     DynamicBuffer *chunk_buffer_;
 };
@@ -78,6 +84,11 @@ void HttpProtocol::Impl::reset()
     }
 
     status_ = Status::READING_START_LINE;
+}
+
+void HttpProtocol::Impl::setOutputCallback(const OutputCallback &output_cb)
+{
+    output_cb_ = output_cb;
 }
 
 HttpProtocol::Impl::RetCode::type HttpProtocol::Impl::recvMessage(
@@ -339,6 +350,15 @@ bool HttpProtocol::Impl::retrieveResponse(HttpResponse *response)
     return true;
 }
 
+void HttpProtocol::Impl::sendMessage(const HttpMessage &message)
+{
+    if (output_cb_) {
+        DynamicBuffer buffer;
+        HttpProtocol::writeMessage(message, &buffer);
+        output_cb_(buffer.readBegin(), buffer.readableBytes());
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 HttpProtocol::HttpProtocol() :
     pimpl_(new Impl())
@@ -359,6 +379,11 @@ HttpProtocol::Status::type HttpProtocol::getStatus() const
     return pimpl_->getStatus();
 }
 
+void HttpProtocol::setOutputCallback(const OutputCallback &output_cb)
+{
+    pimpl_->setOutputCallback(output_cb);
+}
+
 HttpProtocol::RetCode::type HttpProtocol::recvMessage(DynamicBuffer *buffer)
 {
     return pimpl_->recvMessage(buffer);
@@ -372,6 +397,11 @@ bool HttpProtocol::retrieveRequest(HttpRequest *request)
 bool HttpProtocol::retrieveResponse(HttpResponse *response)
 {
     return pimpl_->retrieveResponse(response);
+}
+
+void HttpProtocol::sendMessage(const HttpMessage &message)
+{
+    pimpl_->sendMessage(message);
 }
 
 void HttpProtocol::writeMessage(const HttpMessage &message,
@@ -429,7 +459,6 @@ void HttpProtocol::writeMessage(const HttpMessage &message,
                        message.getBody().c_str());
     buffer->write(count);
 }
-
 
 } // namespace protocol
 } // namespace brickred

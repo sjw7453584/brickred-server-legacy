@@ -3,11 +3,13 @@
 #include <stdint.h>
 #include <arpa/inet.h>
 #include <cstring>
+#include <map>
 #include <vector>
 
 #include <brickred/dynamic_buffer.h>
 #include <brickred/random.h>
 #include <brickred/socket_address.h>
+#include <brickred/string_util.h>
 #include <brickred/codec/base64.h>
 #include <brickred/codec/sha1.h>
 #include <brickred/protocol/http_message.h>
@@ -22,41 +24,48 @@ class WebSocketProtocol::Impl {
 public:
     typedef WebSocketProtocol::Status Status;
     typedef WebSocketProtocol::RetCode RetCode;
-    typedef WebSocketProtocol::HeaderMap HeaderMap;
+    typedef WebSocketProtocol::OutputCallback OutputCallback;
+    typedef std::map<std::string, std::string,
+                     string_util::CaseInsensitiveLess> HeaderMap;
     typedef int (WebSocketProtocol::Impl::*StatusHandler)(DynamicBuffer *);
 
     Impl();
     ~Impl();
 
     Status::type getStatus() const { return status_; }
+
+    void setOutputCallback(const OutputCallback &output_cb);
     void setHandshakeHeader(const std::string &key, const std::string &value);
 
-    bool startAsClient(TcpService &tcp_service,
-                       TcpService::SocketId socket_id,
+    bool startAsClient(const SocketAddress &peer_addr,
                        Random &random_generator,
                        const char *request_uri);
-    bool startAsServer(TcpService &tcp_service,
-                       TcpService::SocketId socket_id);
+    bool startAsServer();
 
     RetCode::type recvMessage(DynamicBuffer *buffer);
     bool retrieveMessage(DynamicBuffer *message);
-    bool sendMessage(const char *buffer, size_t size);
-    bool sendCloseFrame();
-    bool sendPingFrame();
+    void sendMessage(const char *buffer, size_t size);
+    void sendCloseFrame();
+    void sendPingFrame();
 
 public:
-    bool sendPongFrame();
+    bool checkHandshakeRequestValid(const HttpRequest &request) const;
+    void sendHandshakeErrorResponse();
+    void sendHandshakeSuccessResponse(const HttpRequest &request);
+    bool checkHandshakeResponseValid(
+        const HttpResponse &response, const std::string &sec_key) const;
+
     int readHandshakeRequest(DynamicBuffer *buffer);
     int readHandshakeResponse(DynamicBuffer *buffer);
     int readFrame(DynamicBuffer *buffer);
+    void sendPongFrame();
 
 private:
     static StatusHandler s_status_handler_[Status::MAX];
 
 private:
     Status::type status_;
-    TcpService *tcp_service_;
-    TcpService::SocketId socket_id_;
+    OutputCallback output_cb_;
     Random *random_generator_;
     HttpProtocol http_protocol_;
     HeaderMap handshake_headers_;
@@ -81,7 +90,7 @@ WebSocketProtocol::Impl::s_status_handler_[] = {
 
 WebSocketProtocol::Impl::Impl() :
     status_(Status::DETACHED),
-    tcp_service_(NULL), socket_id_(0), random_generator_(NULL),
+    random_generator_(NULL),
     is_client_(false), close_frame_sent_(false), last_op_code_(-1),
     ret_code_(RetCode::ERROR)
 {
@@ -91,6 +100,13 @@ WebSocketProtocol::Impl::~Impl()
 {
 }
 
+void WebSocketProtocol::Impl::setOutputCallback(
+    const OutputCallback &output_cb)
+{
+    http_protocol_.setOutputCallback(output_cb);
+    output_cb_ = output_cb;
+}
+
 void WebSocketProtocol::Impl::setHandshakeHeader(const std::string &key,
                                                  const std::string &value)
 {
@@ -98,7 +114,7 @@ void WebSocketProtocol::Impl::setHandshakeHeader(const std::string &key,
 }
 
 bool WebSocketProtocol::Impl::startAsClient(
-    TcpService &tcp_service, TcpService::SocketId socket_id,
+    const SocketAddress &peer_addr,
     Random &random_generator, const char *request_uri)
 {
     if (status_ != Status::DETACHED) {
@@ -106,8 +122,6 @@ bool WebSocketProtocol::Impl::startAsClient(
     }
 
     status_ = Status::WAITING_HANDSHAKE_RESPONSE;
-    tcp_service_ = &tcp_service;
-    socket_id_ = socket_id;
     random_generator_ = &random_generator;
     is_client_ = true;
 
@@ -133,13 +147,9 @@ bool WebSocketProtocol::Impl::startAsClient(
     // set header 'Host' if not provided
     if (handshake_headers_.find("Host") ==
         handshake_headers_.end()) {
-        SocketAddress addr;
-        if (tcp_service_->getPeerAddress(socket_id_, &addr) == false) {
-            status_ = Status::PENDING_ERROR;
-            return false;
-        }
         setHandshakeHeader("Host",
-            addr.getIp() + ":" + string_util::toString(addr.getPort()));
+            peer_addr.getIp() + ":" +
+            string_util::toString(peer_addr.getPort()));
     }
 
     // set handshake headers
@@ -148,27 +158,18 @@ bool WebSocketProtocol::Impl::startAsClient(
         request.setHeader(iter->first, iter->second);
     }
 
-    DynamicBuffer buffer;
-    HttpProtocol::writeMessage(request, &buffer);
-    if (tcp_service_->sendMessage(socket_id_,
-            buffer.readBegin(), buffer.readableBytes()) == false) {
-        status_ = Status::PENDING_ERROR;
-        return false;
-    }
+    http_protocol_.sendMessage(request);
 
     return true;
 }
 
-bool WebSocketProtocol::Impl::startAsServer(
-    TcpService &tcp_service, TcpService::SocketId socket_id)
+bool WebSocketProtocol::Impl::startAsServer()
 {
     if (status_ != Status::DETACHED) {
         return false;
     }
 
     status_ = Status::WAITING_HANDSHAKE_REQUEST;
-    tcp_service_ = &tcp_service;
-    socket_id_ = socket_id;
     is_client_ = false;
 
     return true;
@@ -206,7 +207,8 @@ WebSocketProtocol::RetCode::type WebSocketProtocol::Impl::recvMessage(
     }
 }
 
-static bool checkHandshakeRequestValid(const HttpRequest &request)
+bool WebSocketProtocol::Impl::checkHandshakeRequestValid(
+    const HttpRequest &request) const
 {
     // check header 'Host'
     if (request.hasHeader("Host") == false) {
@@ -233,17 +235,16 @@ static bool checkHandshakeRequestValid(const HttpRequest &request)
     return true;
 }
 
-static void sendErrorResponse(TcpService *tcp_service,
-                              TcpService::SocketId socket_id)
+void WebSocketProtocol::Impl::sendHandshakeErrorResponse()
 {
     static const char http_400[] = "HTTP/1.1 400 Bad Request\r\n\r\n";
-    tcp_service->sendMessage(socket_id, http_400, sizeof(http_400) - 1);
+    if (output_cb_) {
+        output_cb_(http_400, sizeof(http_400) - 1);
+    }
 }
 
-static bool sendHandshakeResponse(TcpService *tcp_service,
-    TcpService::SocketId socket_id,
-    const HttpRequest &request,
-    const WebSocketProtocol::HeaderMap &handshake_headers)
+void WebSocketProtocol::Impl::sendHandshakeSuccessResponse(
+    const HttpRequest &request)
 {
     const std::string &sec_key = request.getHeader("Sec-WebSocket-Key");
 
@@ -258,9 +259,8 @@ static bool sendHandshakeResponse(TcpService *tcp_service,
             "258EAFA5-E914-47DA-95CA-C5AB0DC85B11")));
 
     // set handshake headers
-    for (WebSocketProtocol::HeaderMap::const_iterator iter =
-            handshake_headers.begin();
-         iter != handshake_headers.end(); ++iter) {
+    for (HeaderMap::const_iterator iter = handshake_headers_.begin();
+         iter != handshake_headers_.end(); ++iter) {
         response.setHeader(iter->first, iter->second);
     }
 
@@ -269,14 +269,7 @@ static bool sendHandshakeResponse(TcpService *tcp_service,
         response.setDate();
     }
 
-    DynamicBuffer buffer;
-    HttpProtocol::writeMessage(response, &buffer);
-    if (tcp_service->sendMessage(socket_id,
-            buffer.readBegin(), buffer.readableBytes()) == false) {
-        return false;
-    }
-
-    return true;
+    http_protocol_.sendMessage(response);
 }
 
 int WebSocketProtocol::Impl::readHandshakeRequest(DynamicBuffer *buffer)
@@ -288,32 +281,29 @@ int WebSocketProtocol::Impl::readHandshakeRequest(DynamicBuffer *buffer)
     } else if (HttpProtocol::RetCode::MESSAGE_READY == ret) {
         HttpRequest request;
         if (http_protocol_.retrieveRequest(&request) == false) {
-            sendErrorResponse(tcp_service_, socket_id_);
+            sendHandshakeErrorResponse();
             return -1;
         }
 
         if (checkHandshakeRequestValid(request) == false) {
-            sendErrorResponse(tcp_service_, socket_id_);
+            sendHandshakeErrorResponse();
             return -1;
         }
 
-        if (sendHandshakeResponse(tcp_service_,
-                socket_id_, request, handshake_headers_) == false) {
-            return -1;
-        }
+        sendHandshakeSuccessResponse(request);
 
         status_ = Status::CONNECTED;
         ret_code_ = RetCode::CONNECTION_ESTABLISHED;
         return 2;
 
     } else {
-        sendErrorResponse(tcp_service_, socket_id_);
+        sendHandshakeErrorResponse();
         return -1;
     }
 }
 
-static bool checkHandshakeResponseValid( const HttpResponse &response,
-    const std::string &sec_key)
+bool WebSocketProtocol::Impl::checkHandshakeResponseValid(
+    const HttpResponse &response, const std::string &sec_key) const
 {
     // check status code
     if (response.getStatusCode() != 101) {
@@ -520,13 +510,13 @@ bool WebSocketProtocol::Impl::retrieveMessage(DynamicBuffer *message)
     return true;
 }
 
-bool WebSocketProtocol::Impl::sendMessage(const char *buffer, size_t size)
+void WebSocketProtocol::Impl::sendMessage(const char *buffer, size_t size)
 {
     if (status_ != Status::CONNECTED) {
-        return false;
+        return;
     }
     if (close_frame_sent_) {
-        return false;
+        return;
     }
 
     DynamicBuffer message;
@@ -575,84 +565,77 @@ bool WebSocketProtocol::Impl::sendMessage(const char *buffer, size_t size)
     }
     message.write(size);
 
-    if (tcp_service_->sendMessage(socket_id_,
-            message.readBegin(), message.readableBytes()) == false) {
-        return false;
+    if (output_cb_) {
+        output_cb_(message.readBegin(), message.readableBytes());
     }
-
-    return true;
 }
 
-bool WebSocketProtocol::Impl::sendCloseFrame()
+void WebSocketProtocol::Impl::sendCloseFrame()
 {
     // FIN = 1, RSV1~RSV3 = 0, opcode = 0x8, payload_length = 0
     static const uint8_t client_frame[] = { 0x88, 0x80, 0x0, 0x0, 0x0, 0x0};
     static const uint8_t server_frame[] = { 0x88, 0x0 };
 
     if (status_ != Status::CONNECTED) {
-        return false;
+        return;
     }
     if (close_frame_sent_) {
-        return false;
+        return;
     }
 
     close_frame_sent_ = true;
 
-    if (is_client_) {
-        return tcp_service_->sendMessage(socket_id_,
-            (const char *)client_frame, sizeof(client_frame));
-    } else {
-        return tcp_service_->sendMessage(socket_id_,
-            (const char *)server_frame, sizeof(server_frame));
+    if (output_cb_) {
+        if (is_client_) {
+            output_cb_((const char *)client_frame, sizeof(client_frame));
+        } else {
+            output_cb_((const char *)server_frame, sizeof(server_frame));
+        }
     }
 }
 
-bool WebSocketProtocol::Impl::sendPingFrame()
+void WebSocketProtocol::Impl::sendPingFrame()
 {
     // FIN = 1, RSV1~RSV3 = 0, opcode = 0x9, payload_length = 0
     static const uint8_t client_frame[] = { 0x89, 0x80, 0x0, 0x0, 0x0, 0x0};
     static const uint8_t server_frame[] = { 0x89, 0x0 };
 
     if (status_ != Status::CONNECTED) {
-        return false;
+        return;
     }
     if (close_frame_sent_) {
-        return false;
+        return;
     }
 
-    if (is_client_) {
-        return tcp_service_->sendMessage(socket_id_,
-            (const char *)client_frame, sizeof(client_frame));
-    } else {
-        return tcp_service_->sendMessage(socket_id_,
-            (const char *)server_frame, sizeof(server_frame));
+    if (output_cb_) {
+        if (is_client_) {
+            output_cb_((const char *)client_frame, sizeof(client_frame));
+        } else {
+            output_cb_((const char *)server_frame, sizeof(server_frame));
+        }
     }
-
-    return false;
 }
 
-bool WebSocketProtocol::Impl::sendPongFrame()
+void WebSocketProtocol::Impl::sendPongFrame()
 {
     // FIN = 1, RSV1~RSV3 = 0, opcode = 0xa, payload_length = 0
     static const uint8_t client_frame[] = { 0x8a, 0x80, 0x0, 0x0, 0x0, 0x0};
     static const uint8_t server_frame[] = { 0x8a, 0x0 };
 
     if (status_ != Status::CONNECTED) {
-        return false;
+        return;
     }
     if (close_frame_sent_) {
-        return false;
+        return;
     }
 
-    if (is_client_) {
-        return tcp_service_->sendMessage(socket_id_,
-            (const char *)client_frame, sizeof(client_frame));
-    } else {
-        return tcp_service_->sendMessage(socket_id_,
-            (const char *)server_frame, sizeof(server_frame));
+    if (output_cb_) {
+        if (is_client_) {
+            output_cb_((const char *)client_frame, sizeof(client_frame));
+        } else {
+            output_cb_((const char *)server_frame, sizeof(server_frame));
+        }
     }
-
-    return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -670,24 +653,27 @@ WebSocketProtocol::Status::type WebSocketProtocol::getStatus() const
     return pimpl_->getStatus();
 }
 
+void WebSocketProtocol::setOutputCallback(const OutputCallback &output_cb)
+{
+    pimpl_->setOutputCallback(output_cb);
+}
+
 void WebSocketProtocol::setHandshakeHeader(const std::string &key,
                                            const std::string &value)
 {
-    return pimpl_->setHandshakeHeader(key, value);
+    pimpl_->setHandshakeHeader(key, value);
 }
 
 bool WebSocketProtocol::startAsClient(
-    TcpService &tcp_service, TcpService::SocketId socket_id,
-    Random &random_generator, const char *request_uri)
+    const SocketAddress &peer_addr, Random &random_generator,
+    const char *request_uri)
 {
-    return pimpl_->startAsClient(tcp_service, socket_id,
-                                 random_generator, request_uri);
+    return pimpl_->startAsClient(peer_addr, random_generator, request_uri);
 }
 
-bool WebSocketProtocol::startAsServer(
-    TcpService &tcp_service, TcpService::SocketId socket_id)
+bool WebSocketProtocol::startAsServer()
 {
-    return pimpl_->startAsServer(tcp_service, socket_id);
+    return pimpl_->startAsServer();
 }
 
 WebSocketProtocol::RetCode::type WebSocketProtocol::recvMessage(
@@ -701,19 +687,19 @@ bool WebSocketProtocol::retrieveMessage(DynamicBuffer *message)
     return pimpl_->retrieveMessage(message);
 }
 
-bool WebSocketProtocol::sendMessage(const char *buffer, size_t size)
+void WebSocketProtocol::sendMessage(const char *buffer, size_t size)
 {
-    return pimpl_->sendMessage(buffer, size);
+    pimpl_->sendMessage(buffer, size);
 }
 
-bool WebSocketProtocol::sendCloseFrame()
+void WebSocketProtocol::sendCloseFrame()
 {
-    return pimpl_->sendCloseFrame();
+    pimpl_->sendCloseFrame();
 }
 
-bool WebSocketProtocol::sendPingFrame()
+void WebSocketProtocol::sendPingFrame()
 {
-    return pimpl_->sendPingFrame();
+    pimpl_->sendPingFrame();
 }
 
 } // namespace protocol

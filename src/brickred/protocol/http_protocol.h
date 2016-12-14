@@ -1,7 +1,10 @@
 #ifndef BRICKRED_PROTOCOL_HTTP_PROTOCOL_H
 #define BRICKRED_PROTOCOL_HTTP_PROTOCOL_H
 
+#include <cstddef>
+
 #include <brickred/class_util.h>
+#include <brickred/function.h>
 #include <brickred/unique_ptr.h>
 
 namespace brickred {
@@ -38,15 +41,20 @@ public:
         };
     };
 
+    typedef Function<void (const char *, size_t)> OutputCallback;
+
     HttpProtocol();
     ~HttpProtocol();
     void reset();
 
     Status::type getStatus() const;
+
+    void setOutputCallback(const OutputCallback &output_cb);
+
     RetCode::type recvMessage(DynamicBuffer *buffer);
     bool retrieveRequest(HttpRequest *request);
     bool retrieveResponse(HttpResponse *response);
-
+    void sendMessage(const HttpMessage &message);
     static void writeMessage(const HttpMessage &message,
                              DynamicBuffer *buffer);
 
