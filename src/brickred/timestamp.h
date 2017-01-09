@@ -22,6 +22,9 @@ public:
     bool operator<(const Timestamp &other) const;
     Timestamp operator+(int64_t millisecond) const;
 
+    bool millisecondLess(const Timestamp &other) const;
+    bool millisecondEqual(const Timestamp &other) const;
+
     int64_t distanceSecond(const Timestamp &other) const;
     int64_t distanceMillisecond(const Timestamp &other) const;
 

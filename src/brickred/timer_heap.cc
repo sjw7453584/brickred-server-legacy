@@ -176,8 +176,7 @@ void TimerHeap::Impl::checkTimeout(const Timestamp &now)
             return;
         }
 
-        if (now.getSecond() < timer->getTimestamp().getSecond() ||
-            now.getMilliSecond() < timer->getTimestamp().getMilliSecond()) {
+        if (now.millisecondLess(timer->getTimestamp()) {
             return;
         }
 

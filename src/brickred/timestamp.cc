@@ -51,6 +51,20 @@ Timestamp Timestamp::operator+(int64_t millisecond) const
     return t;
 }
 
+bool Timestamp::millisecondLess(const Timestamp &other) const
+{
+    if (getSecond() != other.getSecond()) {
+        return getSecond() < other.getSecond();
+    }
+    return getMilliSecond() < other.getMilliSecond();
+}
+
+bool Timestamp::millisecondEqual(const Timestamp &other) const
+{
+    return (getSecond() == other.getSecond()) &&
+           (getMilliSecond() == other.getMilliSecond());
+}
+
 int64_t Timestamp::distanceSecond(const Timestamp &other) const
 {
     if (second_ > other.second_) {
