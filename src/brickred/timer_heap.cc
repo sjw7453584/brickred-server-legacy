@@ -119,6 +119,11 @@ int64_t TimerHeap::Impl::getNextTimeoutMillisecond(const Timestamp &now) const
     if (NULL == timer) {
         return -1;
     }
+
+    if (timer->getTimestamp() < now) {
+        return 0;
+    }
+
     return now.distanceMillisecond(timer->getTimestamp());
 }
 
