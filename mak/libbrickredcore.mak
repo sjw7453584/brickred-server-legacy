@@ -25,6 +25,7 @@ src/brickred/string_util.cc \
 src/brickred/udp_socket.cc \
 src/brickred/codec/base64.cc \
 src/brickred/codec/sha1.cc \
+src/brickred/codec/sha256.cc \
 src/brickred/codec/url.cc \
 src/brickred/protocol/http_message.cc \
 src/brickred/protocol/http_protocol.cc \
