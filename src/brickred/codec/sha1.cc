@@ -27,7 +27,7 @@ void Sha1::reset()
     message_size_ = 0;
 }
 
-static void sha1Processblock(uint32_t *hash, const uint8_t *work_block)
+static void sha1ProcessBlock(uint32_t *hash, const uint8_t *work_block)
 {
     #define ROTL32(_dword, _n) ((_dword) << (_n) ^ ((_dword) >> (32 - (_n))))
 
@@ -95,14 +95,14 @@ void Sha1::update(const char *buffer, size_t size)
             return;
         }
         // process work block
-        sha1Processblock(hash_, work_block_);
+        sha1ProcessBlock(hash_, work_block_);
         buffer += left;
         size -= left;
     }
 
     // process left 64-byte block data without copy
     while (size >= 64) {
-        sha1Processblock(hash_, (uint8_t *)buffer);
+        sha1ProcessBlock(hash_, (uint8_t *)buffer);
         buffer += 64;
         size -= 64;
     }

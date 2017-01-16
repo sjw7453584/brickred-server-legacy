@@ -30,7 +30,7 @@ void Sha256::reset()
     message_size_ = 0;
 }
 
-static void sha256Processblock(uint32_t *hash, const uint8_t *work_block)
+static void sha256ProcessBlock(uint32_t *hash, const uint8_t *work_block)
 {
     static const uint32_t k[64] = {
         0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
@@ -125,14 +125,14 @@ void Sha256::update(const char *buffer, size_t size)
             return;
         }
         // process work block
-        sha256Processblock(hash_, work_block_);
+        sha256ProcessBlock(hash_, work_block_);
         buffer += left;
         size -= left;
     }
 
     // process left 64-byte block data without copy
     while (size >= 64) {
-        sha256Processblock(hash_, (uint8_t *)buffer);
+        sha256ProcessBlock(hash_, (uint8_t *)buffer);
         buffer += 64;
         size -= 64;
     }
