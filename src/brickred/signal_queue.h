@@ -1,5 +1,5 @@
-#ifndef BRICKRED_UNIX_SIGNAL_QUEUE_H
-#define BRICKRED_UNIX_SIGNAL_QUEUE_H
+#ifndef BRICKRED_SIGNAL_QUEUE_H
+#define BRICKRED_SIGNAL_QUEUE_H
 
 #include <brickred/class_util.h>
 #include <brickred/function.h>
@@ -8,8 +8,6 @@
 namespace brickred {
 
 class IOService;
-
-namespace os {
 
 class SignalQueue {
 public:
@@ -29,7 +27,6 @@ private:
     UniquePtr<Impl> pimpl_;
 };
 
-} // namespace os
 } // namespace brickred
 
 #endif

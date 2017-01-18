@@ -1,4 +1,4 @@
-#include <brickred/unix/system.h>
+#include <brickred/system.h>
 
 #include <unistd.h>
 #include <sys/stat.h>
@@ -7,7 +7,7 @@
 #include <cstdio>
 
 namespace brickred {
-namespace os {
+namespace system {
 
 bool daemon(bool change_dir, bool close_stdio)
 {
@@ -78,5 +78,5 @@ SignalHandler signal(int signum, SignalHandler sighandler)
     }
 }
 
-} // namespace os
+} // namespace system
 } // namespace brickred

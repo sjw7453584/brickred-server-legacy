@@ -1,11 +1,10 @@
-#include <brickred/unix/signal_queue.h>
+#include <brickred/signal_queue.h>
 
 #include <brickred/exception.h>
 #include <brickred/io_service.h>
 #include <brickred/self_pipe.h>
 
 namespace brickred {
-namespace os {
 
 class SignalQueue::Impl {
 public:
@@ -101,5 +100,4 @@ void SignalQueue::push(int signum)
     pimpl_->push(signum);
 }
 
-} // namespace os
 } // namespace brickred

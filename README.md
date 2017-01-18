@@ -1,6 +1,6 @@
 brickred-server
 ===============
-This is the brickred studio game server library.
+This is the brickred studio game server core library.
 It implemented basic functionality which a c++ game server needed.
 
 Features
@@ -16,7 +16,7 @@ Features
 
 Platform support
 ----------------
-only linux, maybe port to other platforms in the future
+only linux, maybe port to other platforms (unix likes) in the future
 
 Dependency
 ----------
@@ -31,21 +31,11 @@ $ config.sh --prefix=<prefix>
 $ make && make install
 ```
 
-if you want build lbrickredunix library add option:
-```
-$ config.sh --prefix=<prefix> --build-unix
-```
 if you want build test programmes add option:
 ```
 $ config.sh --prefix=<prefix> --build-test
 ```
 after compile you can find them in bin dir
-
-if you want build eveything add option:
-```
-$ config.sh --prefix=<prefix> --build-all
-```
-
 
 Example
 -------
